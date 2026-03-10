@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Honeypot Dashboard — Agriculture Threat Intel</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff6a;
+    --green-dim: rgba(0,255,106,0.5);
+    --green-dark: #003318;
+    --bg: #030a05;
+    --panel: rgba(0,20,8,0.95);
+    --text: #a0ffb8;
+    --text-dim: #3a6a4a;
+    --red: #ff3355;
+    --amber: #ffaa00;
+    --blue: #00cfff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,255,106,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,255,106,0.02) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .everything { position: relative; z-index: 1; }
+
+  /* Top bar */
+  .topbar {
+    background: rgba(0,15,6,0.98);
+    border-bottom: 1px solid rgba(0,255,106,0.2);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .topbar-left {
+    display: flex; align-items: center; gap: 1.5rem;
+  }
+
+  .topbar-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(0,255,106,0.5);
+  }
+
+  .topbar-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    border-left: 1px solid rgba(0,255,106,0.2);
+    padding-left: 1.5rem;
+  }
+
+  .topbar-right {
+    display: flex; align-items: center; gap: 2rem;
+    font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--text-dim);
+  }
+
+  .live-badge {
+    background: rgba(0,255,106,0.1);
+    border: 1px solid rgba(0,255,106,0.4);
+    color: var(--green);
+    padding: 3px 12px;
+    font-size: 0.6rem; letter-spacing: 3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+  /* Main layout */
+  .main { padding: 1.5rem 2rem; display: grid; gap: 1.5rem; }
+
+  /* Stats row */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid rgba(0,255,106,0.12);
+    border-top: 2px solid transparent;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .stat-card.green { border-top-color: var(--green); }
+  .stat-card.red { border-top-color: var(--red); }
+  .stat-card.amber { border-top-color: var(--amber); }
+  .stat-card.blue { border-top-color: var(--blue); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+    background: linear-gradient(transparent, rgba(0,255,106,0.02));
+  }
+
+  .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 3px; margin-bottom: 0.5rem; }
+  .stat-num { font-family: 'Orbitron', monospace; font-size: 2rem; font-weight: 700; color: var(--green); }
+  .stat-card.red .stat-num { color: var(--red); text-shadow: 0 0 20px rgba(255,51,85,0.4); }
+  .stat-card.amber .stat-num { color: var(--amber); }
+  .stat-card.blue .stat-num { color: var(--blue); }
+  .stat-sub { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; color: var(--text-dim); margin-top: 0.3rem; }
+
+  /* Two column layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+
+  /* Panel */
+  .panel {
+    background: var(--panel);
+    border: 1px solid rgba(0,255,106,0.12);
+  }
+
+  .panel-head {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(0,255,106,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
+    color: var(--text-dim); letter-spacing: 3px;
+  }
+
+  .panel-head span { color: var(--green); font-size: 0.7rem; }
+  .panel-body { padding: 1.25rem; }
+
+  /* Log table */
+  .log-table { width: 100%; border-collapse: collapse; }
+  .log-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-align: left;
+    padding: 0 0.75rem 0.75rem;
+    border-bottom: 1px solid rgba(0,255,106,0.1);
+  }
+
+  .log-table td {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid rgba(0,255,106,0.05);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .log-table tr:hover td { background: rgba(0,255,106,0.03); }
+
+  .log-table tr.new-entry td { animation: rowFlash 1s ease; }
+  @keyframes rowFlash { from { background: rgba(0,255,106,0.15); } to { background: transparent; } }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    border-radius: 2px;
+  }
+
+  .badge-denied { background: rgba(255,51,85,0.15); color: var(--red); border: 1px solid rgba(255,51,85,0.3); }
+  .badge-visit { background: rgba(0,207,255,0.1); color: var(--blue); border: 1px solid rgba(0,207,255,0.3); }
+  .badge-login { background: rgba(255,170,0,0.1); color: var(--amber); border: 1px solid rgba(255,170,0,0.3); }
+
+  /* Threat level gauge */
+  .gauge-wrap { text-align: center; padding: 1rem 0; }
+
+  .gauge-label { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 3px; margin-bottom: 1rem; }
+
+  .gauge-ring {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: conic-gradient(var(--green) 0deg, var(--green) 0deg, rgba(0,255,106,0.1) 0deg);
+    transition: background 1s ease;
+  }
+
+  .gauge-inner {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+
+  .gauge-val { font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700; color: var(--green); }
+  .gauge-pct { font-family: 'Share Tech Mono', monospace; font-size: 0.5rem; color: var(--text-dim); }
+
+  .threat-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--green);
+    margin-top: 0.5rem;
+  }
+
+  /* Activity chart */
+  .chart-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 80px;
+    padding: 0 0.5rem;
+  }
+
+  .chart-bar {
+    flex: 1;
+    background: rgba(0,255,106,0.2);
+    border-top: 1px solid rgba(0,255,106,0.5);
+    min-height: 4px;
+    transition: height 0.5s ease;
+    position: relative;
+  }
+
+  .chart-bar:hover { background: rgba(0,255,106,0.4); }
+
+  .chart-bar.active { background: rgba(0,255,106,0.5); border-top-color: var(--green); box-shadow: 0 0 10px rgba(0,255,106,0.3); }
+
+  /* IP list */
+  .ip-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0,255,106,0.06);
+    font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
+  }
+
+  .ip-addr { color: var(--green); }
+  .ip-count {
+    background: rgba(0,255,106,0.1);
+    border: 1px solid rgba(0,255,106,0.2);
+    color: var(--green);
+    padding: 1px 8px;
+    font-size: 0.6rem;
+    min-width: 40px; text-align: center;
+  }
+
+  /* Controls */
+  .ctrl-btn {
+    background: transparent;
+    border: 1px solid rgba(0,255,106,0.3);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ctrl-btn:hover { border-color: var(--green); color: var(--green); }
+  .ctrl-btn.danger { border-color: rgba(255,51,85,0.3); color: rgba(255,51,85,0.6); }
+  .ctrl-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 2rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .open-trap-btn {
+    display: block;
+    background: rgba(0,255,106,0.08);
+    border: 1px solid rgba(0,255,106,0.4);
+    color: var(--green);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    margin: 1rem auto;
+    transition: all 0.3s;
+    text-align: center;
+    width: 100%;
+  }
+  .open-trap-btn:hover { background: rgba(0,255,106,0.15); box-shadow: 0 0 30px rgba(0,255,106,0.2); }
+
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="everything">
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🌾 HONEYPOT DASHBOARD</div>
+    <div class="topbar-tag">AGRICULTURE THREAT INTELLIGENCE SYSTEM</div>
+  </div>
+  <div class="topbar-right">
+    <div><span style="color:var(--text-dim)">NODE:</span> AGRI-CLUSTER-07</div>
+    <div><span style="color:var(--text-dim)">PORT:</span> <span style="color:var(--amber)">8888</span></div>
+    <div id="clock-top" style="color:var(--text)">--:--:--</div>
+    <div class="live-badge"><div class="pulse-dot"></div>LIVE</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-label">TOTAL VISITS</div>
+      <div class="stat-num" id="s-visits">0</div>
+      <div class="stat-sub">CONNECTIONS RECEIVED</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">LOGIN ATTEMPTS</div>
+      <div class="stat-num" id="s-attempts">0</div>
+      <div class="stat-sub">CREDENTIAL ATTACKS</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">ACCESS DENIED</div>
+      <div class="stat-num" id="s-denied">0</div>
+      <div class="stat-sub">BLOCKED & LOGGED</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">UNIQUE IPs</div>
+      <div class="stat-num" id="s-ips">0</div>
+      <div class="stat-sub">DISTINCT ATTACKERS</div>
+    </div>
+  </div>
+
+  <!-- Open trap button -->
+  <button class="open-trap-btn" onclick="openTrap()">
+    ▶  OPEN HONEYPOT TRAP PAGE IN NEW TAB
+  </button>
+
+  <!-- Two column: log table + side panels -->
+  <div class="three-col">
+
+    <!-- Log table -->
+    <div class="panel">
+      <div class="panel-head">
+        <span>▶ LIVE CONNECTION LOG</span>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="ctrl-btn" onclick="simulateAttack()">SIM ATTACK</button>
+          <button class="ctrl-btn danger" onclick="clearLogs()">CLEAR</button>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:0;">
+        <table class="log-table">
+          <thead><tr>
+            <th>#</th>
+            <th>TIMESTAMP</th>
+            <th>EVENT</th>
+            <th>OPERATOR ID</th>
+            <th>STATUS</th>
+          </tr></thead>
+          <tbody id="log-body">
+            <tr><td colspan="5" class="empty">NO CONNECTIONS YET — OPEN THE TRAP PAGE TO BEGIN</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right panels -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+      <!-- Threat gauge -->
+      <div class="panel">
+        <div class="panel-head"><span>THREAT LEVEL</span></div>
+        <div class="panel-body">
+          <div class="gauge-wrap">
+            <div class="gauge-ring" id="gauge-ring">
+              <div class="gauge-inner">
+                <div class="gauge-val" id="gauge-val">0</div>
+                <div class="gauge-pct">ATTEMPTS</div>
+              </div>
+            </div>
+            <div class="threat-label" id="threat-label">MONITORING</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity chart -->
+      <div class="panel">
+        <div class="panel-head"><span>ACTIVITY (LAST 10)</span></div>
+        <div class="panel-body">
+          <div class="chart-area" id="chart-area">
+            <!-- Bars generated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Top IPs -->
+      <div class="panel">
+        <div class="panel-head"><span>TOP SOURCE IPs</span></div>
+        <div class="panel-body" style="padding:0.75rem 1.25rem;" id="ip-list">
+          <div class="empty">AWAITING DATA</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // ── CLOCK ────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById('clock-top').textContent =
+      new Date().toLocaleTimeString('en-GB', { hour12:false });
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  // ── STATE ────────────────────────────────────────────────
+  let logs = [];
+  let ipCounts = {};
+  let activityBuckets = new Array(10).fill(0);
+  let rowCounter = 0;
+
+  // ── INIT CHART ───────────────────────────────────────────
+  function initChart() {
+    const area = document.getElementById('chart-area');
+    area.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.id = `bar-${i}`;
+      bar.style.height = '4px';
+      area.appendChild(bar);
+    }
+  }
+
+  function updateChart() {
+    const max = Math.max(...activityBuckets, 1);
+    for (let i = 0; i < 10; i++) {
+      const bar = document.getElementById(`bar-${i}`);
+      if (bar) {
+        const h = Math.max(4, (activityBuckets[i] / max) * 72);
+        bar.style.height = h + 'px';
+        bar.className = 'chart-bar' + (i === 9 ? ' active' : '');
+      }
+    }
+  }
+
+  // ── ADD LOG ENTRY ─────────────────────────────────────────
+  function addEntry(event, user) {
+    rowCounter++;
+    const now = new Date();
+    const ts = now.toLocaleString('en-GB', { hour12: false });
+    const entry = { id: rowCounter, ts, event, user: user || '—' };
+    logs.unshift(entry);
+
+    // Update IP tracking (use simulated IPs for demo)
+    const simIP = getSimIP();
+    ipCounts[simIP] = (ipCounts[simIP] || 0) + 1;
+
+    // Activity bucket
+    activityBuckets.shift();
+    activityBuckets.push(activityBuckets[activityBuckets.length - 1] + 1);
+
+    renderTable();
+    updateStats();
+    updateGauge();
+    updateIPList();
+    updateChart();
+  }
+
+  const simIPs = ['192.168.1.105', '10.0.0.47', '172.16.8.23', '192.168.0.12', '10.10.10.200'];
+  let simIPIdx = 0;
+  function getSimIP() { return simIPs[simIPIdx % simIPs.length]; }
+
+  // ── RENDER TABLE ─────────────────────────────────────────
+  function renderTable() {
+    const tbody = document.getElementById('log-body');
+    if (logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">NO CONNECTIONS YET</td></tr>';
+      return;
+    }
+    tbody.innerHTML = logs.slice(0, 30).map((e, i) => {
+      let badge = '';
+      if (e.event === 'PAGE_VISIT') badge = '<span class="badge badge-visit">VISIT</span>';
+      else if (e.event === 'LOGIN_ATTEMPT') badge = '<span class="badge badge-login">ATTEMPT</span>';
+      else if (e.event === 'ACCESS_DENIED') badge = '<span class="badge badge-denied">DENIED</span>';
+      return `<tr class="${i === 0 ? 'new-entry' : ''}">
+        <td style="color:var(--text-dim)">${e.id.toString().padStart(3,'0')}</td>
+        <td style="color:var(--text-dim)">${e.ts}</td>
+        <td>${badge}</td>
+        <td>${e.user}</td>
+        <td style="color:${e.event==='ACCESS_DENIED'?'var(--red)':'var(--text-dim)'}">
+          ${e.event==='ACCESS_DENIED'?'LOGGED & DENIED':'RECORDED'}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── UPDATE STATS ─────────────────────────────────────────
+  function updateStats() {
+    const visits = logs.filter(l => l.event === 'PAGE_VISIT').length;
+    const attempts = logs.filter(l => l.event === 'LOGIN_ATTEMPT').length;
+    const denied = logs.filter(l => l.event === 'ACCESS_DENIED').length;
+    const ips = Object.keys(ipCounts).length;
+    document.getElementById('s-visits').textContent = visits;
+    document.getElementById('s-attempts').textContent = attempts;
+    document.getElementById('s-denied').textContent = denied;
+    document.getElementById('s-ips').textContent = ips;
+  }
+
+  // ── UPDATE GAUGE ─────────────────────────────────────────
+  function updateGauge() {
+    const attempts = logs.filter(l => l.event === 'LOGIN_ATTEMPT').length;
+    document.getElementById('gauge-val').textContent = attempts;
+
+    let level = 'MONITORING', color = 'var(--green)', deg = 0;
+    if (attempts >= 10) { level = 'CRITICAL'; color = 'var(--red)'; deg = 340; }
+    else if (attempts >= 5) { level = 'HIGH'; color = 'var(--amber)'; deg = 200; }
+    else if (attempts >= 2) { level = 'ELEVATED'; color = 'var(--amber)'; deg = 100; }
+    else if (attempts >= 1) { level = 'LOW', color = 'var(--blue)'; deg = 40; }
+
+    document.getElementById('gauge-ring').style.background =
+      `conic-gradient(${color} ${deg}deg, rgba(255,255,255,0.05) ${deg}deg)`;
+    document.getElementById('threat-label').textContent = level;
+    document.getElementById('threat-label').style.color = color;
+  }
+
+  // ── UPDATE IP LIST ────────────────────────────────────────
+  function updateIPList() {
+    const sorted = Object.entries(ipCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+    if (sorted.length === 0) {
+      document.getElementById('ip-list').innerHTML = '<div class="empty">AWAITING DATA</div>';
+      return;
+    }
+    document.getElementById('ip-list').innerHTML = sorted.map(([ip, count]) =>
+      `<div class="ip-item"><span class="ip-addr">${ip}</span><span class="ip-count">${count}</span></div>`
+    ).join('');
+  }
+
+  // ── POLL localStorage (from trap page) ───────────────────
+  let lastLogCount = 0;
+
+  function pollLogs() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('honeypot_logs') || '[]');
+      if (saved.length > lastLogCount) {
+        const newEntries = saved.slice(0, saved.length - lastLogCount);
+        newEntries.reverse().forEach(e => {
+          simIPIdx++;
+          addEntry(e.event, e.user);
+        });
+        lastLogCount = saved.length;
+      }
+    } catch(err) {}
+  }
+
+  setInterval(pollLogs, 800);
+
+  // ── SIMULATE ATTACK ───────────────────────────────────────
+  function simulateAttack() {
+    const fakeUsers = ['admin', 'root', 'farmer01', 'CROP_MANAGER', 'test123', 'agri_admin'];
+    const user = fakeUsers[Math.floor(Math.random() * fakeUsers.length)];
+    simIPIdx++;
+    addEntry('PAGE_VISIT', '—');
+    setTimeout(() => { addEntry('LOGIN_ATTEMPT', user); }, 400);
+    setTimeout(() => { addEntry('ACCESS_DENIED', user); }, 800);
+
+    // Also write to localStorage so trap page could see it
+    const all = JSON.parse(localStorage.getItem('honeypot_logs') || '[]');
+    all.unshift({ ts: new Date().toLocaleString(), event: 'ACCESS_DENIED', user });
+    all.unshift({ ts: new Date().toLocaleString(), event: 'LOGIN_ATTEMPT', user });
+    all.unshift({ ts: new Date().toLocaleString(), event: 'PAGE_VISIT', user: '—' });
+    localStorage.setItem('honeypot_logs', JSON.stringify(all));
+    lastLogCount = all.length;
+  }
+
+  // ── CLEAR LOGS ────────────────────────────────────────────
+  function clearLogs() {
+    logs = []; ipCounts = {}; rowCounter = 0; simIPIdx = 0;
+    activityBuckets = new Array(10).fill(0);
+    lastLogCount = 0;
+    localStorage.removeItem('honeypot_logs');
+    renderTable(); updateStats(); updateGauge(); updateIPList(); updateChart();
+  }
+
+  // ── OPEN TRAP ─────────────────────────────────────────────
+  function openTrap() {
+    window.open('honeypot_trap.html', '_blank');
+  }
+
+  // ── INIT ─────────────────────────────────────────────────
+  initChart();
+  updateChart();
+  pollLogs(); // Check existing logs immediately
+</script>
+</body>
+</html>
