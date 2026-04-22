@@ -1,29 +1,3 @@
-"""
-=============================================================
-  HONEYPOT NETWORK FOR AGRICULTURE THREAT INTELLIGENCE
-=============================================================
-  Project   : Agriculture Honeypot Port Listener
-  Programme : Cloud Computing, Cyber Security & Ethical Hacking
-  Technology: Python, Socket Library
-  Author    : [Your Name]
-  Date      : 2024
-=============================================================
-
-WHAT IS A HONEYPOT?
-  A honeypot is a deliberately exposed system/service that
-  acts as a TRAP for attackers. It logs all connection
-  attempts so security teams can analyse threat patterns.
-
-IN AGRICULTURE CONTEXT:
-  Modern farms use IoT sensors, SCADA systems, and remote
-  monitoring tools. Attackers target these systems to:
-  - Steal crop/yield data
-  - Disrupt irrigation systems
-  - Manipulate environmental controls
-  This honeypot simulates an Agriculture IoT management
-  portal on port 8888 to detect and log such attackers.
-"""
-
 import socket       # Core library for network connections
 import datetime     # For timestamping log entries
 import threading    # For handling multiple connections at once
@@ -42,14 +16,14 @@ LOG_FILE = "honeypot_log.txt"  # Where logs are saved
 #  FAKE BANNER (what attackers see when they connect)
 # ─────────────────────────────────────────────
 FAKE_BANNER = """
-╔══════════════════════════════════════════════════╗
-║   AGRITECH SMART FARM MANAGEMENT SYSTEM v2.1     ║
-║   IoT Sensor Dashboard | Crop Monitoring Portal  ║
-║   Powered by AgriCloud™ Infrastructure           ║
-╚══════════════════════════════════════════════════╝
+==================================================
+   AGRITECH SMART FARM MANAGEMENT SYSTEM v2.1
+   IoT Sensor Dashboard | Crop Monitoring Portal
+   Powered by AgriCloud Infrastructure
+==================================================
 
 [!] ALERT: Unauthorized access attempt detected.
-[!] ACCESS DENIED — This incident has been logged.
+[!] ACCESS DENIED - This incident has been logged.
 [!] Your IP address and timestamp have been recorded.
 [!] Authorities have been notified.
 

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agri Cloud — Server Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── INHERIT ALL FARM-DETAILS BASE STYLES ─────────────── */
+.page-section { display:none; animation:secFadeIn 0.35s ease; }
+.page-section.active { display:block; }
+@keyframes secFadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.tag-g { background:var(--green-pale);color:var(--green);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
+.tag-a { background:var(--amber-light);color:var(--amber);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
+.tag-r { background:var(--red-light);color:var(--red);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
+.tag-b { background:#e0f2fe;color:var(--blue);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
+
+.fi { width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.9rem;color:var(--text);outline:none;transition:all 0.2s;background:white; }
+.fi:focus { border-color:var(--green);box-shadow:0 0 0 3px rgba(45,122,58,.1); }
+.fl { display:block;font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:0.4rem; }
+.fg { margin-bottom:1.1rem; }
+
+.prog-row { margin-bottom:0.85rem; }
+.prog-label { display:flex;justify-content:space-between;font-size:0.82rem;font-weight:600;margin-bottom:4px; }
+.prog-track { height:8px;background:var(--border);border-radius:4px;overflow:hidden; }
+.prog-fill { height:100%;border-radius:4px;transition:width 1s cubic-bezier(.22,1,.36,1); }
+
+.sec-h { font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:0.25rem; }
+.sec-s { color:var(--text-muted);font-size:0.88rem;margin-bottom:1.75rem; }
+
+.canvas-wrap { position:relative;width:100%;background:var(--bg-alt);border-radius:10px;overflow:hidden; }
+canvas { display:block;width:100% !important; }
+
+.live-dot { width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;animation:blink 1.5s infinite;box-shadow:0 0 6px rgba(34,197,94,0.5); }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+#toast { position:fixed;bottom:2rem;right:2rem;background:var(--bg-dark);color:white;padding:0.85rem 1.4rem;border-radius:10px;font-size:0.85rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(.22,1,.36,1);z-index:999;max-width:300px;border-left:3px solid var(--green); }
+#toast.show { transform:translateY(0);opacity:1; }
+
+/* ── SERVER-SPECIFIC STYLES ──────────────────────────── */
+.srv-metric { display:flex;flex-direction:column;gap:0.3rem;padding:1rem;background:var(--bg-alt);border-radius:10px;border:1px solid var(--border); }
+.srv-metric-label { font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted); }
+.srv-metric-val { font-family:'DM Serif Display',serif;font-size:1.8rem;font-weight:700; }
+.srv-metric-sub { font-size:0.75rem;color:var(--text-muted); }
+
+.srv-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem; }
+
+.log-line { display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.82rem; }
+.log-line:last-child { border-bottom:none; }
+.log-time { font-family:'Outfit',monospace;font-size:0.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px; }
+.log-level { font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap; }
+.log-INFO  { background:#e0f2fe;color:#0369a1; }
+.log-WARN  { background:var(--amber-light);color:var(--amber); }
+.log-ERROR { background:var(--red-light);color:var(--red); }
+.log-DEBUG { background:#f3e8ff;color:#7c3aed; }
+.log-OK    { background:var(--green-pale);color:var(--green); }
+
+.db-table-row { display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:1rem;padding:0.7rem 1rem;border-bottom:1px solid var(--border);font-size:0.82rem;align-items:center; }
+.db-table-row:last-child { border-bottom:none; }
+.db-table-head { font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);background:var(--bg-alt);border-radius:8px 8px 0 0; }
+
+.api-row { display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--border);font-size:0.82rem; }
+.api-row:last-child { border-bottom:none; }
+.api-method { font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:4px;min-width:44px;text-align:center; }
+.api-GET  { background:#e0f2fe;color:#0369a1; }
+.api-POST { background:var(--green-pale);color:var(--green); }
+.api-PUT  { background:var(--amber-light);color:var(--amber); }
+.api-DEL  { background:var(--red-light);color:var(--red); }
+
+.node-card { background:white;border:1px solid var(--border);border-radius:10px;padding:1.1rem;transition:box-shadow 0.2s; }
+.node-card:hover { box-shadow:var(--shadow); }
+.node-card-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem; }
+.node-name { font-weight:700;font-size:0.9rem; }
+
+.pipe-step { display:flex;align-items:center;gap:0.75rem;padding:0.8rem 1rem;background:var(--bg-alt);border-radius:8px;margin-bottom:0.5rem;font-size:0.85rem; }
+.pipe-icon { font-size:1.3rem; }
+.pipe-status { margin-left:auto;font-size:0.72rem;font-weight:700; }
+.pipe-ok   { color:var(--green); }
+.pipe-warn { color:var(--amber); }
+.pipe-err  { color:var(--red); }
+
+.user-row { display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--border);font-size:0.85rem; }
+.user-row:last-child { border-bottom:none; }
+.user-avatar { width:34px;height:34px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0; }
+
+.backup-row { display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:1rem;padding:0.7rem 1rem;border-bottom:1px solid var(--border);font-size:0.82rem;align-items:center; }
+.backup-row:last-child { border-bottom:none; }
+
+/* ── RESPONSIVE ──────────────────────────────────────── */
+@media(max-width:900px){
+  #menuBtn { display:flex !important; }
+  .dash-grid2,.dash-grid3,.srv-grid { grid-template-columns:1fr !important; }
+}
+</style>
+</head>
+<body>
+<div class="dash-layout">
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════ -->
+<aside class="dash-sidebar" id="dashSidebar">
+  <div class="dash-sidebar-logo">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-leaf">🌿</span>
+      <span class="logo-text">Agri <span>Cloud</span></span>
+    </a>
+  </div>
+  <nav class="dash-nav">
+    <div class="dash-nav-section">SERVER OVERVIEW</div>
+    <button class="dash-nav-item active" onclick="show('overview',this)"><span class="nav-icon">🖥️</span> System Overview</button>
+    <button class="dash-nav-item" onclick="show('database',this)"><span class="nav-icon">🗄️</span> Database</button>
+    <button class="dash-nav-item" onclick="show('nodes',this)"><span class="nav-icon">📡</span> IoT Nodes</button>
+    <div class="dash-nav-section">DATA LAYERS</div>
+    <button class="dash-nav-item" onclick="show('sensor-data',this)"><span class="nav-icon">📊</span> Raw Sensor Data</button>
+    <button class="dash-nav-item" onclick="show('api',this)"><span class="nav-icon">🔗</span> API Logs</button>
+    <button class="dash-nav-item" onclick="show('pipeline',this)"><span class="nav-icon">⚙️</span> Data Pipeline</button>
+    <div class="dash-nav-section">SECURITY</div>
+    <button class="dash-nav-item" onclick="show('access',this)"><span class="nav-icon">🔒</span> Access Control<span class="nav-badge">3</span></button>
+    <button class="dash-nav-item" onclick="show('syslogs',this)"><span class="nav-icon">📋</span> System Logs</button>
+    <div class="dash-nav-section">MAINTENANCE</div>
+    <button class="dash-nav-item" onclick="show('backup',this)"><span class="nav-icon">💾</span> Backups</button>
+    <button class="dash-nav-item" onclick="show('config',this)"><span class="nav-icon">🛠️</span> Configuration</button>
+    <div class="dash-nav-section">FARM PORTAL</div>
+    <button class="dash-nav-item" onclick="location.href='farm-details.html'"><span class="nav-icon">🌾</span> Farm Dashboard</button>
+  </nav>
+  <div class="dash-sidebar-footer">
+    <div class="dash-user">
+      <div class="dash-avatar">AA</div>
+      <div class="dash-user-info">
+        <div class="dash-user-name">agri@admin</div>
+        <div class="dash-user-role">System Admin · Root</div>
+      </div>
+      <button class="dash-logout" onclick="location.href='login.html'" title="Logout">⏻</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+<div class="dash-main">
+  <div class="dash-topbar">
+    <button id="menuBtn" style="background:none;border:none;font-size:1.3rem;cursor:pointer;display:none;margin-right:0.5rem" onclick="document.getElementById('dashSidebar').classList.toggle('open')">☰</button>
+    <div class="dash-page-title" id="pageTitle">Server Data
+      <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Node: AGRI-CLUSTER-07 · TLS 1.3 · Uptime 99.97%</span>
+    </div>
+    <div class="dash-topbar-actions">
+      <span style="font-size:0.78rem;color:var(--text-muted)">Synced: <span style="color:var(--green);font-weight:600" id="sync-time">live</span></span>
+      <span><span class="live-dot"></span> <span style="font-size:0.78rem;color:var(--green);font-weight:600">LIVE</span></span>
+      <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+        <div class="dash-avatar" style="width:30px;height:30px;font-size:0.75rem">AA</div>Admin
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-content">
+
+<!-- ════════════════════════════════════════
+     1. SYSTEM OVERVIEW
+════════════════════════════════════════ -->
+<div id="sec-overview" class="page-section active">
+  <div class="sec-h">System Overview</div>
+  <div class="sec-s">Agri Cloud Node AGRI-CLUSTER-07 · Kerala Region · Last boot: Nov 10, 2024 03:12 AM</div>
+
+  <!-- Alert -->
+  <div style="background:var(--amber-light);border:1px solid #fcd34d;border-left:4px solid var(--amber);border-radius:var(--radius);padding:0.9rem 1.25rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.75rem;font-size:0.88rem">
+    ⚠️<div><strong style="color:var(--amber)">Sensor S-07 battery critical (18%)</strong> — Wind sensor at Central node will go offline in ~6 hours. Replace battery or data gap will occur.
+    <a href="#" onclick="show('nodes',null)" style="color:var(--green);font-weight:600;margin-left:8px">View Nodes →</a></div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Server Uptime</div><div class="dstat-num" style="color:var(--green)" id="uptime-val">12d 8h</div><div class="dstat-sub">Since Nov 10 reboot</div><div class="dstat-icon">🖥️</div></div>
+    <div class="dstat amber"><div class="dstat-label">CPU Load</div><div class="dstat-num" id="cpu-val">34%</div><div class="dstat-sub">4 cores · avg 1.4 GHz</div><div class="dstat-icon">⚡</div></div>
+    <div class="dstat"><div class="dstat-label">Memory</div><div class="dstat-num" id="ram-val">2.1 / 8 GB</div><div class="dstat-sub">26% used</div><div class="dstat-icon">💾</div></div>
+    <div class="dstat blue"><div class="dstat-label">Data Points Today</div><div class="dstat-num">8,640</div><div class="dstat-sub">12 sensors × 720</div><div class="dstat-icon">📊</div></div>
+  </div>
+
+  <div class="dash-grid2">
+    <!-- Resource gauges -->
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>⚡ Resource Usage</h3><span class="tag-g">● Healthy</span></div>
+      <div class="dash-card-body">
+        <div class="prog-row"><div class="prog-label"><span>CPU</span><span id="cpu-bar-lbl" style="color:var(--green)">34%</span></div><div class="prog-track"><div class="prog-fill" id="cpu-bar" style="width:34%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>RAM</span><span style="color:var(--green)">26%</span></div><div class="prog-track"><div class="prog-fill" style="width:26%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>Disk / SSD</span><span style="color:var(--amber)">61%</span></div><div class="prog-track"><div class="prog-fill" style="width:61%;background:var(--amber)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>Network I/O</span><span style="color:var(--green)">18%</span></div><div class="prog-track"><div class="prog-fill" id="net-bar" style="width:18%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>DB Connections</span><span style="color:var(--green)">12 / 100</span></div><div class="prog-track"><div class="prog-fill" style="width:12%;background:var(--green)"></div></div></div>
+        <div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.8rem">
+          <div class="srv-metric"><span class="srv-metric-label">Disk Free</span><span class="srv-metric-val" style="font-size:1.3rem;color:var(--amber)">156 GB</span><span class="srv-metric-sub">of 400 GB · SSD RAID-1</span></div>
+          <div class="srv-metric"><span class="srv-metric-label">Temp</span><span class="srv-metric-val" style="font-size:1.3rem;color:var(--green)">42 °C</span><span class="srv-metric-sub">CPU · Fan 2,100 RPM</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CPU trend chart -->
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>📈 CPU + Network — 24 Hours</h3></div>
+      <div class="dash-card-body"><div class="canvas-wrap"><canvas id="cpu-chart" height="180"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="dash-grid2">
+    <!-- Services status -->
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🔧 Services</h3><span class="tag-g">8/8 running</span></div>
+      <div class="dash-card-body">
+        <div class="pipe-step"><span class="pipe-icon">🗄️</span><div><div style="font-weight:600">PostgreSQL 16</div><div style="font-size:0.75rem;color:var(--text-muted)">Primary DB · Port 5432</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">📦</span><div><div style="font-weight:600">TimescaleDB</div><div style="font-size:0.75rem;color:var(--text-muted)">Time-series extension · Sensor store</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">🌐</span><div><div style="font-weight:600">Node.js API (v20)</div><div style="font-size:0.75rem;color:var(--text-muted)">REST API · Port 3000 · 47ms avg</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">📡</span><div><div style="font-weight:600">ChirpStack LoRaWAN</div><div style="font-size:0.75rem;color:var(--text-muted)">MQTT broker · 12 devices online</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">🤖</span><div><div style="font-weight:600">ML Inference Engine</div><div style="font-size:0.75rem;color:var(--text-muted)">Disease detection · Batch 15 min</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">💾</span><div><div style="font-weight:600">Redis Cache</div><div style="font-size:0.75rem;color:var(--text-muted)">Session + API cache · 128 MB</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">🔒</span><div><div style="font-weight:600">Nginx (TLS 1.3)</div><div style="font-size:0.75rem;color:var(--text-muted)">Reverse proxy · HTTPS · Port 443</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+        <div class="pipe-step"><span class="pipe-icon">📬</span><div><div style="font-weight:600">Celery Worker</div><div style="font-size:0.75rem;color:var(--text-muted)">Alert queue · 3 workers</div></div><span class="pipe-status pipe-ok">● RUNNING</span></div>
+      </div>
+    </div>
+
+    <!-- Recent system events -->
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🔔 Recent System Events</h3></div>
+      <div class="dash-card-body">
+        <div class="log-line"><span class="log-time">05:30:12</span><span class="log-level log-OK">OK</span><span>Drip trigger pushed to S-01 (F1 Zone A) — 480L completed</span></div>
+        <div class="log-line"><span class="log-time">04:00:00</span><span class="log-level log-OK">OK</span><span>Daily DB backup completed — 2.3 GB → S3 · 4m 12s</span></div>
+        <div class="log-line"><span class="log-time">02:14:08</span><span class="log-level log-WARN">WARN</span><span>ML: Sigatoka blight F6 · conf 84% · alert dispatched</span></div>
+        <div class="log-line"><span class="log-time">00:01:45</span><span class="log-level log-WARN">WARN</span><span>S-07 battery below 20% · OTA charge alert sent</span></div>
+        <div class="log-line"><span class="log-time">Yesterday</span><span class="log-level log-INFO">INFO</span><span>NDVI satellite pass ingested — 14.5 ha · 3.1 MB GeoTIFF</span></div>
+        <div class="log-line"><span class="log-time">4 days ago</span><span class="log-level log-ERROR">ERROR</span><span>LOGIN FAIL: IP 45.76.184.32 (NL) · admin/password · FLAGGED</span></div>
+        <div class="log-line"><span class="log-time">4 days ago</span><span class="log-level log-ERROR">ERROR</span><span>LOGIN FAIL: SQL injection attempt · user: "' OR '1'='1" · BLOCKED</span></div>
+        <div class="log-line"><span class="log-time">5 days ago</span><span class="log-level log-OK">OK</span><span>SSL cert renewed — valid until May 2026 · Let's Encrypt</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     2. DATABASE
+════════════════════════════════════════ -->
+<div id="sec-database" class="page-section">
+  <div class="sec-h">Database</div>
+  <div class="sec-s">PostgreSQL 16 + TimescaleDB · Farm AC-KL-2847 · 2.3 GB total · Last backup 04:00 AM</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Total Records</div><div class="dstat-num" style="color:var(--green)">9.4M</div><div class="dstat-sub">Since deployment</div><div class="dstat-icon">🗄️</div></div>
+    <div class="dstat amber"><div class="dstat-label">DB Size</div><div class="dstat-num">2.3 GB</div><div class="dstat-sub">+48 MB today</div><div class="dstat-icon">💾</div></div>
+    <div class="dstat"><div class="dstat-label">Avg Query Time</div><div class="dstat-num" style="color:var(--green)">4.2 ms</div><div class="dstat-sub">P95: 18ms</div><div class="dstat-icon">⚡</div></div>
+    <div class="dstat blue"><div class="dstat-label">Active Connections</div><div class="dstat-num">12</div><div class="dstat-sub">Pool: 100 max</div><div class="dstat-icon">🔗</div></div>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:1.5rem">
+    <div class="dash-card-head"><h3>📊 Table Overview</h3></div>
+    <div class="dash-card-body" style="padding:0">
+      <div class="db-table-row db-table-head"><span>Table</span><span>Rows</span><span>Size</span><span>Last Write</span><span>Status</span></div>
+      <div class="db-table-row"><span><strong>sensor_readings</strong><div style="font-size:0.72rem;color:var(--text-muted)">Raw IoT data · TimescaleDB hypertable</div></span><span style="font-weight:700;color:var(--green)">8,211,040</span><span>1.8 GB</span><span style="color:var(--text-muted)">10s ago</span><span><span class="tag-g">● Live</span></span></div>
+      <div class="db-table-row"><span><strong>crop_records</strong><div style="font-size:0.72rem;color:var(--text-muted)">Crop health, stages, field assignments</div></span><span style="font-weight:700">48</span><span>420 KB</span><span style="color:var(--text-muted)">2 days ago</span><span><span class="tag-g">● OK</span></span></div>
+      <div class="db-table-row"><span><strong>irrigation_events</strong><div style="font-size:0.72rem;color:var(--text-muted)">Pump triggers, zone schedule log</div></span><span style="font-weight:700">1,204</span><span>2.1 MB</span><span style="color:var(--text-muted)">05:30 AM</span><span><span class="tag-g">● OK</span></span></div>
+      <div class="db-table-row"><span><strong>ndvi_passes</strong><div style="font-size:0.72rem;color:var(--text-muted)">Satellite imagery metadata + NDVI index</div></span><span style="font-weight:700">36</span><span>210 MB</span><span style="color:var(--text-muted)">Yesterday</span><span><span class="tag-g">● OK</span></span></div>
+      <div class="db-table-row"><span><strong>soil_reports</strong><div style="font-size:0.72rem;color:var(--text-muted)">Lab N-P-K results per field</div></span><span style="font-weight:700">72</span><span>840 KB</span><span style="color:var(--text-muted)">Nov 10</span><span><span class="tag-g">● OK</span></span></div>
+      <div class="db-table-row"><span><strong>pest_detections</strong><div style="font-size:0.72rem;color:var(--text-muted)">AI vision scan results</div></span><span style="font-weight:700">488</span><span>18 MB</span><span style="color:var(--text-muted)">Yesterday</span><span><span class="tag-a">● Alert</span></span></div>
+      <div class="db-table-row"><span><strong>market_prices</strong><div style="font-size:0.72rem;color:var(--text-muted)">APMC + eNAM commodity price feed</div></span><span style="font-weight:700">128,400</span><span>32 MB</span><span style="color:var(--text-muted)">6 min ago</span><span><span class="tag-g">● Live</span></span></div>
+      <div class="db-table-row"><span><strong>users</strong><div style="font-size:0.72rem;color:var(--text-muted)">Portal access accounts + permissions</div></span><span style="font-weight:700">6</span><span>48 KB</span><span style="color:var(--text-muted)">Nov 12</span><span><span class="tag-g">● OK</span></span></div>
+      <div class="db-table-row"><span><strong>honeypot_logs</strong><div style="font-size:0.72rem;color:var(--text-muted)">Intrusion detection + attack log</div></span><span style="font-weight:700" style="color:var(--red)" id="hp-count">—</span><span>1.2 MB</span><span style="color:var(--text-muted)" id="hp-last">—</span><span><span class="tag-r">● Security</span></span></div>
+    </div>
+  </div>
+
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>📈 Sensor Write Rate</h3><span style="font-size:0.75rem;color:var(--text-muted)">Rows/min</span></div>
+      <div class="dash-card-body"><div class="canvas-wrap"><canvas id="db-writes-chart" height="160"></canvas></div></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🔍 Slow Query Log</h3><span class="tag-a">P95 > 50ms</span></div>
+      <div class="dash-card-body">
+        <div class="log-line"><span class="log-time">02:14:08</span><span class="log-level log-WARN">82ms</span><span>SELECT * FROM pest_detections WHERE confidence > 0.7 AND date > NOW()-7d (missing index)</span></div>
+        <div class="log-line"><span class="log-time">Yesterday</span><span class="log-level log-WARN">61ms</span><span>SELECT avg(moisture), field_id FROM sensor_readings GROUP BY field_id (large scan)</span></div>
+        <div class="log-line"><span class="log-time">3 days ago</span><span class="log-level log-WARN">54ms</span><span>JOIN ndvi_passes ON crop_records full join — NDVI load spike during satellite ingest</span></div>
+        <button class="btn btn-outline" style="margin-top:1rem;width:100%" onclick="showToast('🔧 EXPLAIN ANALYZE queued for slow queries')">Run EXPLAIN ANALYZE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     3. IOT NODES
+════════════════════════════════════════ -->
+<div id="sec-nodes" class="page-section">
+  <div class="sec-h">IoT Node Network</div>
+  <div class="sec-s">ChirpStack LoRaWAN · 12 sensors · Gateway: AGW-01 · Freq: IN865 MHz</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Online Nodes</div><div class="dstat-num" style="color:var(--green)">12 / 12</div><div class="dstat-sub">100% uptime today</div><div class="dstat-icon">📡</div></div>
+    <div class="dstat amber"><div class="dstat-label">Low Battery</div><div class="dstat-num">1</div><div class="dstat-sub">S-07 · 18% · Critical</div><div class="dstat-icon">🔋</div></div>
+    <div class="dstat"><div class="dstat-label">Packets Today</div><div class="dstat-num">8,640</div><div class="dstat-sub">0 dropped · 100% delivery</div><div class="dstat-icon">📦</div></div>
+    <div class="dstat blue"><div class="dstat-label">Gateway RSSI</div><div class="dstat-num">-78 dBm</div><div class="dstat-sub">Good signal · AGW-01</div><div class="dstat-icon">📶</div></div>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:1.5rem">
+    <div class="dash-card-head"><h3>📡 All Sensor Nodes — Live</h3><span class="tag-g"><span class="live-dot"></span> LIVE</span></div>
+    <div class="dash-card-body" style="padding:0">
+      <table class="threat-table" style="width:100%">
+        <thead><tr><th>Node ID</th><th>Type</th><th>Field</th><th>Last Value</th><th>RSSI</th><th>Battery</th><th>Uptime</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>S-01</strong></td><td>Soil Moisture</td><td>F1 Zone A</td><td id="n01">64%</td><td>-74 dBm</td><td style="color:var(--green)">87%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-02</strong></td><td>Soil Moisture</td><td>F2 Zone B</td><td id="n02">71%</td><td>-81 dBm</td><td style="color:var(--green)">92%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-03</strong></td><td>Soil Moisture</td><td>F3 Coconut</td><td id="n03" style="color:var(--red);font-weight:700">34% ⚠</td><td>-79 dBm</td><td style="color:var(--green)">76%</td><td>12d 8h</td><td><span class="tbadge tbadge-attempt">⚠ Low moisture</span></td></tr>
+          <tr><td><strong>S-04</strong></td><td>Temp / Humidity</td><td>F1–F2 Central</td><td id="n04">29.1°C / 68%</td><td>-72 dBm</td><td style="color:var(--green)">81%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-05</strong></td><td>Soil pH</td><td>F4 Turmeric</td><td>pH 6.7</td><td>-85 dBm</td><td style="color:var(--green)">68%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-06</strong></td><td>Rain Gauge</td><td>Roof Central</td><td id="n06">1.8 mm</td><td>-71 dBm</td><td style="color:var(--green)">95%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-07</strong></td><td>Anemometer</td><td>Central Mast</td><td id="n07">14 km/h NE</td><td>-88 dBm</td><td style="color:var(--red);font-weight:700">18% ⚠</td><td>12d 8h</td><td><span class="tbadge tbadge-denied">⚠ Battery critical</span></td></tr>
+          <tr><td><strong>S-08</strong></td><td>Light / PAR</td><td>F5 Vegetables</td><td id="n08">7.8k lux</td><td>-76 dBm</td><td style="color:var(--green)">74%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-09</strong></td><td>CO₂ Sensor</td><td>F6 Banana</td><td>820 ppm</td><td>-82 dBm</td><td style="color:var(--green)">89%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-10</strong></td><td>Soil Moisture</td><td>F7 Shallots</td><td id="n10" style="color:var(--red);font-weight:700">28% ⚠</td><td>-78 dBm</td><td style="color:var(--green)">65%</td><td>12d 8h</td><td><span class="tbadge tbadge-denied">✕ Critical low</span></td></tr>
+          <tr><td><strong>S-11</strong></td><td>Flow Meter</td><td>Pump A Line</td><td id="n11">4.2 L/min</td><td>-73 dBm</td><td style="color:var(--green)">91%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+          <tr><td><strong>S-12</strong></td><td>Leaf Wetness</td><td>F6 Banana</td><td>0.82 (Wet)</td><td>-80 dBm</td><td style="color:var(--green)">78%</td><td>12d 8h</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">● Online</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     4. RAW SENSOR DATA
+════════════════════════════════════════ -->
+<div id="sec-sensor-data" class="page-section">
+  <div class="sec-h">Raw Sensor Data</div>
+  <div class="sec-s">TimescaleDB · 8.2M rows · Updated every 10 seconds · Retention: 2 years</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Today's Writes</div><div class="dstat-num" style="color:var(--green)" id="writes-today">8,640</div><div class="dstat-sub">12 sensors × 720 reads</div><div class="dstat-icon">✍️</div></div>
+    <div class="dstat"><div class="dstat-label">Total Stored</div><div class="dstat-num">9.4 M</div><div class="dstat-sub">Since May 2024</div><div class="dstat-icon">💾</div></div>
+    <div class="dstat amber"><div class="dstat-label">Anomalies Today</div><div class="dstat-num">3</div><div class="dstat-sub">S-03, S-07, S-10</div><div class="dstat-icon">⚠️</div></div>
+    <div class="dstat blue"><div class="dstat-label">Write Rate</div><div class="dstat-num">1.2/s</div><div class="dstat-sub">Avg · Peak 6/s</div><div class="dstat-icon">⚡</div></div>
+  </div>
+
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>📊 Soil Moisture — All Fields · 7 Days</h3></div>
+      <div class="dash-card-body"><div class="canvas-wrap"><canvas id="raw-moisture-chart" height="180"></canvas></div></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🌡️ Temperature + Humidity · 24h</h3></div>
+      <div class="dash-card-body"><div class="canvas-wrap"><canvas id="raw-temp-chart" height="180"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Live raw feed -->
+  <div class="dash-card">
+    <div class="dash-card-head"><h3>📡 Live Raw Data Feed</h3><span class="tag-g"><span class="live-dot"></span> Streaming</span></div>
+    <div class="dash-card-body" style="padding:0">
+      <div id="raw-feed" style="font-family:monospace;font-size:0.75rem;max-height:260px;overflow-y:auto;padding:1rem;background:var(--bg-alt);border-radius:8px;line-height:2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     5. API LOGS
+════════════════════════════════════════ -->
+<div id="sec-api" class="page-section">
+  <div class="sec-h">API Logs</div>
+  <div class="sec-s">Node.js REST API · Port 3000 · TLS 1.3 · 47ms avg response · v2.1.4</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Requests Today</div><div class="dstat-num" style="color:var(--green)">12,480</div><div class="dstat-sub">↑ 8% vs yesterday</div><div class="dstat-icon">🌐</div></div>
+    <div class="dstat amber"><div class="dstat-label">4xx Errors</div><div class="dstat-num">24</div><div class="dstat-sub">Login failures + bad tokens</div><div class="dstat-icon">⚠️</div></div>
+    <div class="dstat red"><div class="dstat-label">5xx Errors</div><div class="dstat-num">0</div><div class="dstat-sub">No server errors today</div><div class="dstat-icon">✅</div></div>
+    <div class="dstat blue"><div class="dstat-label">Avg Latency</div><div class="dstat-num">47 ms</div><div class="dstat-sub">P99: 210ms</div><div class="dstat-icon">⚡</div></div>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:1.5rem">
+    <div class="dash-card-head"><h3>🔗 Recent API Requests</h3></div>
+    <div class="dash-card-body">
+      <div class="api-row"><span class="api-method api-GET">GET</span><span style="font-family:monospace;flex:1">/api/v1/sensors/live</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">32ms · 2s ago</span></div>
+      <div class="api-row"><span class="api-method api-GET">GET</span><span style="font-family:monospace;flex:1">/api/v1/crop/health</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">41ms · 1m ago</span></div>
+      <div class="api-row"><span class="api-method api-POST">POST</span><span style="font-family:monospace;flex:1">/api/v1/irrigation/trigger</span><span style="color:var(--green);font-weight:700">201</span><span style="color:var(--text-muted);font-size:0.75rem">88ms · 5:30 AM</span></div>
+      <div class="api-row"><span class="api-method api-GET">GET</span><span style="font-family:monospace;flex:1">/api/v1/market/prices</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">19ms · 6m ago</span></div>
+      <div class="api-row"><span class="api-method api-POST">POST</span><span style="font-family:monospace;flex:1">/api/v1/auth/login</span><span style="color:var(--red);font-weight:700">401</span><span style="color:var(--text-muted);font-size:0.75rem">12ms · 4 days ago · IP 45.76.184.32</span></div>
+      <div class="api-row"><span class="api-method api-POST">POST</span><span style="font-family:monospace;flex:1">/api/v1/auth/login</span><span style="color:var(--red);font-weight:700">400</span><span style="color:var(--text-muted);font-size:0.75rem">8ms · 4 days ago · SQL injection blocked</span></div>
+      <div class="api-row"><span class="api-method api-GET">GET</span><span style="font-family:monospace;flex:1">/api/v1/satellite/ndvi/latest</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">112ms · Yesterday</span></div>
+      <div class="api-row"><span class="api-method api-PUT">PUT</span><span style="font-family:monospace;flex:1">/api/v1/sensors/S-07/config</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">44ms · Yesterday</span></div>
+      <div class="api-row"><span class="api-method api-GET">GET</span><span style="font-family:monospace;flex:1">/api/v1/weather/forecast</span><span style="color:var(--green);font-weight:700">200</span><span style="color:var(--text-muted);font-size:0.75rem">67ms · 3h ago</span></div>
+    </div>
+  </div>
+
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>📈 Request Volume — 24h</h3></div>
+      <div class="dash-card-body"><div class="canvas-wrap"><canvas id="api-chart" height="160"></canvas></div></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🔍 Top Endpoints</h3></div>
+      <div class="dash-card-body">
+        <div class="prog-row"><div class="prog-label"><span>/api/v1/sensors/live</span><span>4,320</span></div><div class="prog-track"><div class="prog-fill" style="width:85%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>/api/v1/market/prices</span><span>2,880</span></div><div class="prog-track"><div class="prog-fill" style="width:58%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>/api/v1/irrigation/status</span><span>1,440</span></div><div class="prog-track"><div class="prog-fill" style="width:29%;background:var(--blue)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>/api/v1/crop/health</span><span>1,200</span></div><div class="prog-track"><div class="prog-fill" style="width:24%;background:var(--blue)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>/api/v1/auth/login <span class="tag-r" style="font-size:0.6rem">24 fails</span></span><span>48</span></div><div class="prog-track"><div class="prog-fill" style="width:3%;background:var(--red)"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     6. DATA PIPELINE
+════════════════════════════════════════ -->
+<div id="sec-pipeline" class="page-section">
+  <div class="sec-h">Data Pipeline</div>
+  <div class="sec-s">LoRaWAN → MQTT → Processor → TimescaleDB → ML → API → Dashboard</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Pipeline Health</div><div class="dstat-num" style="color:var(--green)">100%</div><div class="dstat-sub">All stages passing</div><div class="dstat-icon">✅</div></div>
+    <div class="dstat"><div class="dstat-label">Throughput</div><div class="dstat-num">1.2 msg/s</div><div class="dstat-sub">Avg · Peak 6/s on rain</div><div class="dstat-icon">⚡</div></div>
+    <div class="dstat amber"><div class="dstat-label">Queue Depth</div><div class="dstat-num">3</div><div class="dstat-sub">Celery alert queue</div><div class="dstat-icon">📬</div></div>
+    <div class="dstat blue"><div class="dstat-label">ML Batch Lag</div><div class="dstat-num">14 min</div><div class="dstat-sub">Next run in 1 min</div><div class="dstat-icon">🤖</div></div>
+  </div>
+
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>⚙️ Pipeline Stages</h3></div>
+      <div class="dash-card-body">
+        <div class="pipe-step"><span class="pipe-icon">📡</span><div><div style="font-weight:600">LoRaWAN Gateway (AGW-01)</div><div style="font-size:0.75rem;color:var(--text-muted)">IN865 MHz · 12 nodes · 0 drops today</div></div><span class="pipe-status pipe-ok">● OK</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ Uplink packets · avg 1 msg/10s</div>
+        <div class="pipe-step"><span class="pipe-icon">📨</span><div><div style="font-weight:600">ChirpStack MQTT Broker</div><div style="font-size:0.75rem;color:var(--text-muted)">Topic: application/1/device/+/event/up</div></div><span class="pipe-status pipe-ok">● OK</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ JSON payload decode + validation</div>
+        <div class="pipe-step"><span class="pipe-icon">🔄</span><div><div style="font-weight:600">Node.js Processor</div><div style="font-size:0.75rem;color:var(--text-muted)">Decode · calibrate · anomaly flag · enqueue</div></div><span class="pipe-status pipe-ok">● OK</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ Calibrated reading</div>
+        <div class="pipe-step"><span class="pipe-icon">🗄️</span><div><div style="font-weight:600">TimescaleDB Write</div><div style="font-size:0.75rem;color:var(--text-muted)">INSERT sensor_readings · 4.2ms avg</div></div><span class="pipe-status pipe-ok">● OK</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ Every 15 min batch</div>
+        <div class="pipe-step"><span class="pipe-icon">🤖</span><div><div style="font-weight:600">ML Inference (Disease + Irrigation)</div><div style="font-size:0.75rem;color:var(--text-muted)">TensorFlow Lite · NDVI + sensor fusion</div></div><span class="pipe-status pipe-ok">● OK</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ Predictions → alerts</div>
+        <div class="pipe-step"><span class="pipe-icon">📬</span><div><div style="font-weight:600">Celery Alert Queue</div><div style="font-size:0.75rem;color:var(--text-muted)">SMS + push notification dispatch · 3 pending</div></div><span class="pipe-status pipe-warn">● 3 pending</span></div>
+        <div style="padding-left:1.5rem;color:var(--text-muted);font-size:0.75rem;margin-bottom:0.5rem">↓ WebSocket push</div>
+        <div class="pipe-step"><span class="pipe-icon">🌐</span><div><div style="font-weight:600">REST API + Dashboard</div><div style="font-size:0.75rem;color:var(--text-muted)">Live data to farm-details.html · 47ms</div></div><span class="pipe-status pipe-ok">● Serving</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="dash-card" style="margin-bottom:1.25rem">
+        <div class="dash-card-head"><h3>📊 Message Throughput — 24h</h3></div>
+        <div class="dash-card-body"><div class="canvas-wrap"><canvas id="pipe-chart" height="130"></canvas></div></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-head"><h3>🧪 Data Quality Checks</h3></div>
+        <div class="dash-card-body">
+          <div class="prog-row"><div class="prog-label"><span>Valid packets</span><span style="color:var(--green)">99.8%</span></div><div class="prog-track"><div class="prog-fill" style="width:99.8%;background:var(--green)"></div></div></div>
+          <div class="prog-row"><div class="prog-label"><span>In-range readings</span><span style="color:var(--green)">97.4%</span></div><div class="prog-track"><div class="prog-fill" style="width:97.4%;background:var(--green)"></div></div></div>
+          <div class="prog-row"><div class="prog-label"><span>Calibration drift < 2%</span><span style="color:var(--amber)">94.1%</span></div><div class="prog-track"><div class="prog-fill" style="width:94.1%;background:var(--amber)"></div></div></div>
+          <div class="prog-row"><div class="prog-label"><span>Timestamp accuracy</span><span style="color:var(--green)">100%</span></div><div class="prog-track"><div class="prog-fill" style="width:100%;background:var(--green)"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     7. ACCESS CONTROL
+════════════════════════════════════════ -->
+<div id="sec-access" class="page-section">
+  <div class="sec-h">Access Control</div>
+  <div class="sec-s">Portal users · Login attempts · Security events · Honeypot log</div>
+  <div class="dash-stats">
+    <div class="dstat red"><div class="dstat-label">Security Events</div><div class="dstat-num" id="sec-events">3</div><div class="dstat-sub">Last 7 days</div><div class="dstat-icon">🚨</div></div>
+    <div class="dstat amber"><div class="dstat-label">Failed Logins</div><div class="dstat-num" id="sec-fails">—</div><div class="dstat-sub">This session</div><div class="dstat-icon">🔒</div></div>
+    <div class="dstat"><div class="dstat-label">Honeypot Hits</div><div class="dstat-num" id="sec-hp">—</div><div class="dstat-sub">From localStorage</div><div class="dstat-icon">🪤</div></div>
+    <div class="dstat blue"><div class="dstat-label">Active Users</div><div class="dstat-num">5</div><div class="dstat-sub">Portal accounts</div><div class="dstat-icon">👥</div></div>
+  </div>
+
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>👥 Portal Users</h3></div>
+      <div class="dash-card-body">
+        <div class="user-row"><div class="user-avatar">AA</div><div style="flex:1"><div style="font-weight:600">agri@admin</div><div style="font-size:0.75rem;color:var(--text-muted)">System Admin · Server Data access</div></div><span class="tag-r">Root</span></div>
+        <div class="user-row"><div class="user-avatar" style="background:var(--blue)">FR</div><div style="flex:1"><div style="font-weight:600">farmer.rajan</div><div style="font-size:0.75rem;color:var(--text-muted)">Farm Owner · Full dashboard</div></div><span class="tag-g">Owner</span></div>
+        <div class="user-row"><div class="user-avatar" style="background:#7c3aed">KF</div><div style="flex:1"><div style="font-weight:600">krishna.farm</div><div style="font-size:0.75rem;color:var(--text-muted)">Operator · Dashboard + Irrigation</div></div><span class="tag-b">Operator</span></div>
+        <div class="user-row"><div class="user-avatar" style="background:var(--amber)">MG</div><div style="flex:1"><div style="font-weight:600">meera.grower</div><div style="font-size:0.75rem;color:var(--text-muted)">Viewer · Read-only</div></div><span class="tag-a">Viewer</span></div>
+        <div class="user-row"><div class="user-avatar" style="background:#0369a1">TA</div><div style="flex:1"><div style="font-weight:600">thomas.agri</div><div style="font-size:0.75rem;color:var(--text-muted)">Viewer · Read-only</div></div><span class="tag-a">Viewer</span></div>
+        <div class="user-row"><div class="user-avatar" style="background:#111">HP</div><div style="flex:1"><div style="font-weight:600">admin@honeypot</div><div style="font-size:0.75rem;color:var(--text-muted)">Honeypot · Redirects attackers</div></div><span class="tag-r">Trap</span></div>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🔴 Security Events — Last 7 Days</h3></div>
+      <div class="dash-card-body">
+        <div class="log-line"><span class="log-time">4 days ago</span><span class="log-level log-ERROR">BLOCK</span><span><strong>SQL injection:</strong> user input: <code>' OR '1'='1</code> · IP 103.21.58.42 → fake-page.html</span></div>
+        <div class="log-line"><span class="log-time">4 days ago</span><span class="log-level log-WARN">HONEY</span><span><strong>Honeypot hit #2:</strong> admin/password · IP 45.76.184.32 (NL) → fake-page.html</span></div>
+        <div class="log-line"><span class="log-time">4 days ago</span><span class="log-level log-INFO">WARN</span><span><strong>Honeypot hit #1:</strong> admin/admin · first attempt · shown error</span></div>
+        <div class="log-line"><span class="log-time">6 days ago</span><span class="log-level log-WARN">FAIL</span><span>3 consecutive login fails · IP 94.102.49.193 (Frankfurt) · session locked 5s</span></div>
+        <button class="btn btn-outline" style="margin-top:1rem;width:100%" onclick="showToast('📤 Security report exported')">📤 Export Security Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Honeypot log from localStorage -->
+  <div class="dash-card">
+    <div class="dash-card-head"><h3>🪤 Honeypot Log (Live from browser storage)</h3><span class="tag-r" id="hp-log-count">Loading…</span></div>
+    <div class="dash-card-body" style="padding:0">
+      <div id="hp-log-table" style="font-family:monospace;font-size:0.75rem;max-height:300px;overflow-y:auto;padding:1rem;background:var(--bg-alt);border-radius:8px;line-height:2">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     8. SYSTEM LOGS
+════════════════════════════════════════ -->
+<div id="sec-syslogs" class="page-section">
+  <div class="sec-h">System Logs</div>
+  <div class="sec-s">syslog · Nginx · PostgreSQL · ChirpStack · Combined view · Last 48h</div>
+  <div class="dash-card">
+    <div class="dash-card-head"><h3>📋 Live Log Stream</h3><span class="tag-g"><span class="live-dot"></span> Tailing</span></div>
+    <div class="dash-card-body" style="padding:0">
+      <div id="sys-log-stream" style="font-family:monospace;font-size:0.73rem;max-height:440px;overflow-y:auto;padding:1rem;background:#0d1117;color:#e0e0e0;border-radius:8px;line-height:1.9"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     9. BACKUPS
+════════════════════════════════════════ -->
+<div id="sec-backup" class="page-section">
+  <div class="sec-h">Backups</div>
+  <div class="sec-s">Daily automated backup → AWS S3 (ap-south-1) · Retention: 30 days</div>
+  <div class="dash-stats">
+    <div class="dstat"><div class="dstat-label">Last Backup</div><div class="dstat-num" style="color:var(--green)">04:00 AM</div><div class="dstat-sub">Today · 2.3 GB · ✅ OK</div><div class="dstat-icon">💾</div></div>
+    <div class="dstat"><div class="dstat-label">Backups This Month</div><div class="dstat-num">14</div><div class="dstat-sub">All successful</div><div class="dstat-icon">📦</div></div>
+    <div class="dstat blue"><div class="dstat-label">S3 Storage Used</div><div class="dstat-num">28 GB</div><div class="dstat-sub">14 snapshots</div><div class="dstat-icon">☁️</div></div>
+    <div class="dstat amber"><div class="dstat-label">Next Backup</div><div class="dstat-num">04:00 AM</div><div class="dstat-sub">Tomorrow · Scheduled</div><div class="dstat-icon">🕓</div></div>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:1.5rem">
+    <div class="dash-card-head"><h3>💾 Backup History</h3></div>
+    <div class="dash-card-body" style="padding:0">
+      <div class="backup-row" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);background:var(--bg-alt);border-radius:8px 8px 0 0"><span>Date</span><span>Size</span><span>Duration</span><span>Destination</span><span>Status</span></div>
+      <div class="backup-row"><span><strong>Nov 14 04:00 AM</strong></span><span>2.3 GB</span><span>4m 12s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-14</span><span><span class="tag-g">✅ OK</span></span></div>
+      <div class="backup-row"><span>Nov 13 04:00 AM</span><span>2.28 GB</span><span>4m 08s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-13</span><span><span class="tag-g">✅ OK</span></span></div>
+      <div class="backup-row"><span>Nov 12 04:00 AM</span><span>2.26 GB</span><span>4m 01s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-12</span><span><span class="tag-g">✅ OK</span></span></div>
+      <div class="backup-row"><span>Nov 11 04:00 AM</span><span>2.24 GB</span><span>3m 58s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-11</span><span><span class="tag-g">✅ OK</span></span></div>
+      <div class="backup-row"><span>Nov 10 04:00 AM</span><span>2.21 GB</span><span>3m 52s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-10</span><span><span class="tag-g">✅ OK</span></span></div>
+      <div class="backup-row"><span>Nov 09 04:00 AM</span><span>2.19 GB</span><span>4m 10s</span><span style="color:var(--text-muted)">S3 · agri-cloud-kl/2024-11-09</span><span><span class="tag-g">✅ OK</span></span></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:1rem">
+    <button class="btn btn-primary" onclick="showToast('💾 Manual backup triggered — running in background')">▶ Run Manual Backup Now</button>
+    <button class="btn btn-outline" onclick="showToast('♻️ Restore point selected — confirm in production before proceeding')">♻️ Restore from Backup</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     10. CONFIGURATION
+════════════════════════════════════════ -->
+<div id="sec-config" class="page-section">
+  <div class="sec-h">Configuration</div>
+  <div class="sec-s">Server, sensor thresholds, alert settings, integrations</div>
+  <div class="dash-grid2">
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>⚙️ Server Settings</h3></div>
+      <div class="dash-card-body">
+        <div class="fg"><label class="fl">Farm ID</label><input class="fi" value="AC-KL-2847" readonly></div>
+        <div class="fg"><label class="fl">Node Hostname</label><input class="fi" value="AGRI-CLUSTER-07"></div>
+        <div class="fg"><label class="fl">API Version</label><input class="fi" value="v2.1.4" readonly></div>
+        <div class="fg"><label class="fl">Sensor Polling Interval (s)</label><input class="fi" type="number" value="10"></div>
+        <div class="fg"><label class="fl">ML Batch Interval (min)</label><input class="fi" type="number" value="15"></div>
+        <div class="fg"><label class="fl">Backup Schedule</label><input class="fi" value="0 4 * * *" placeholder="cron"></div>
+        <button class="btn btn-primary" onclick="showToast('✅ Config saved — restart required for interval changes')">Save Configuration</button>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head"><h3>🚨 Alert Thresholds</h3></div>
+      <div class="dash-card-body">
+        <div class="fg"><label class="fl">Moisture Critical Below (%)</label><input class="fi" type="number" value="40"></div>
+        <div class="fg"><label class="fl">Temperature Alert (°C)</label><input class="fi" type="number" value="38"></div>
+        <div class="fg"><label class="fl">Battery Warning Below (%)</label><input class="fi" type="number" value="20"></div>
+        <div class="fg"><label class="fl">CPU Alert Above (%)</label><input class="fi" type="number" value="80"></div>
+        <div class="fg"><label class="fl">Disk Warning Above (%)</label><input class="fi" type="number" value="85"></div>
+        <div class="fg"><label class="fl">Failed Login Lockout (attempts)</label><input class="fi" type="number" value="3"></div>
+        <button class="btn btn-primary" onclick="showToast('✅ Alert thresholds updated')">Save Thresholds</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div><!-- end dash-content -->
+</div><!-- end dash-main -->
+</div><!-- end dash-layout -->
+
+<div id="toast"></div>
+
+<script>
+/* ── SECTION NAVIGATION ──────────────────────────────── */
+const titles = {
+  overview:'System Overview', database:'Database', nodes:'IoT Nodes',
+  'sensor-data':'Raw Sensor Data', api:'API Logs', pipeline:'Data Pipeline',
+  access:'Access Control', syslogs:'System Logs', backup:'Backups', config:'Configuration'
+};
+function show(id, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.dash-nav-item').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').innerHTML = (titles[id]||id) +
+    '<span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Node: AGRI-CLUSTER-07 · TLS 1.3</span>';
+  if (id === 'sensor-data') startRawFeed();
+  if (id === 'syslogs') startSysLog();
+  if (id === 'access') loadHoneypotLog();
+}
+
+/* ── TOAST ───────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── LIVE CPU FLICKER ────────────────────────────────── */
+setInterval(() => {
+  const cpu = 28 + Math.floor(Math.random() * 18);
+  const el = document.getElementById('cpu-val');
+  if (el) el.textContent = cpu + '%';
+  const bar = document.getElementById('cpu-bar');
+  if (bar) { bar.style.width = cpu + '%'; bar.style.background = cpu > 70 ? 'var(--red)' : cpu > 50 ? 'var(--amber)' : 'var(--green)'; }
+  const lbl = document.getElementById('cpu-bar-lbl');
+  if (lbl) lbl.textContent = cpu + '%';
+}, 2000);
+
+/* ── LIVE SENSOR FLICKER ─────────────────────────────── */
+const sensorFlicker = {
+  n01: () => (60 + Math.random()*8).toFixed(1) + '%',
+  n02: () => (68 + Math.random()*6).toFixed(1) + '%',
+  n04: () => (28 + Math.random()*3).toFixed(1) + '°C / ' + (64 + Math.floor(Math.random()*6)) + '%',
+  n06: () => (1.6 + Math.random()*0.5).toFixed(1) + ' mm',
+  n07: () => (12 + Math.floor(Math.random()*6)) + ' km/h NE',
+  n08: () => (7 + Math.random()*1.5).toFixed(1) + 'k lux',
+  n11: () => (4.0 + Math.random()*0.5).toFixed(1) + ' L/min',
+};
+setInterval(() => {
+  Object.entries(sensorFlicker).forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fn();
+  });
+}, 5000);
+
+/* ── WRITES COUNTER ──────────────────────────────────── */
+let writesCount = 8640;
+setInterval(() => {
+  writesCount += Math.floor(Math.random() * 3);
+  const el = document.getElementById('writes-today');
+  if (el) el.textContent = writesCount.toLocaleString();
+}, 10000);
+
+/* ── RAW FEED STREAM ─────────────────────────────────── */
+let feedInterval = null;
+const SENSORS = ['S-01','S-02','S-03','S-04','S-05','S-06','S-07','S-08','S-09','S-10','S-11','S-12'];
+const TYPES   = ['moisture','temp_hum','ph','rain','wind','light','co2','flow'];
+function startRawFeed() {
+  const feed = document.getElementById('raw-feed');
+  if (!feed) return;
+  if (feedInterval) clearInterval(feedInterval);
+  feed.innerHTML = '';
+  feedInterval = setInterval(() => {
+    const node = SENSORS[Math.floor(Math.random()*SENSORS.length)];
+    const val  = (Math.random()*100).toFixed(2);
+    const ts   = new Date().toISOString();
+    const color = parseFloat(val) < 35 ? '#ef4444' : parseFloat(val) < 50 ? '#f59e0b' : '#22c55e';
+    feed.innerHTML += `<span style="color:#888">${ts}</span>  <span style="color:#60a5fa">${node}</span>  val=<span style="color:${color}">${val}</span>  unit=raw  rssi=-${74+Math.floor(Math.random()*16)}dBm\n`;
+    feed.scrollTop = feed.scrollHeight;
+    if (feed.children.length > 60) feed.innerHTML = feed.innerHTML.split('\n').slice(-50).join('\n');
+  }, 1200);
+}
+
+/* ── SYS LOG STREAM ──────────────────────────────────── */
+const SYS_LOGS = [
+  ['nginx','INFO','GET /api/v1/sensors/live 200 32ms'],
+  ['postgres','DEBUG','checkpoint starting: wal'],
+  ['chirpstack','INFO','uplink received · devEUI 0004A30B001C3842 · S-04'],
+  ['nodejs','INFO','POST /api/v1/irrigation/trigger · F3 · 30min'],
+  ['celery','INFO','alert task dispatched · S-07 battery 18%'],
+  ['ml-engine','INFO','disease scan batch complete · 0 new detections'],
+  ['nginx','WARN','429 rate limit hit · IP 45.76.184.32'],
+  ['postgres','INFO','autovacuum: table sensor_readings · 2.1M rows'],
+  ['redis','DEBUG','cache hit /api/v1/market/prices · TTL 58s'],
+  ['chirpstack','INFO','uplink received · devEUI 0004A30B001C3843 · S-01'],
+];
+let logInterval = null;
+function startSysLog() {
+  const stream = document.getElementById('sys-log-stream');
+  if (!stream) return;
+  if (logInterval) clearInterval(logInterval);
+  stream.innerHTML = '';
+  const color = {INFO:'#60a5fa',DEBUG:'#a78bfa',WARN:'#fbbf24',ERROR:'#f87171'};
+  logInterval = setInterval(() => {
+    const l = SYS_LOGS[Math.floor(Math.random()*SYS_LOGS.length)];
+    const ts = new Date().toISOString().replace('T',' ').slice(0,19);
+    stream.innerHTML += `<span style="color:#888">${ts}</span> [<span style="color:#22c55e">${l[0]}</span>] <span style="color:${color[l[1]]||'#e0e0e0'}">${l[1]}</span>  ${l[2]}\n`;
+    stream.scrollTop = stream.scrollHeight;
+  }, 900);
+}
+
+/* ── HONEYPOT LOG FROM LOCALSTORAGE ──────────────────── */
+function loadHoneypotLog() {
+  const logs = JSON.parse(localStorage.getItem('honeypot_logs') || '[]');
+  const denied = parseInt(localStorage.getItem('hp_denied') || '0');
+  const attempts = parseInt(localStorage.getItem('hp_attempts') || '0');
+
+  const failEl = document.getElementById('sec-fails');
+  if (failEl) failEl.textContent = denied;
+  const hpEl = document.getElementById('sec-hp');
+  const hpLogs = logs.filter(l => l.event === 'HONEYPOT_HIT' || l.event === 'SQL_INJECTION_DETECTED' || l.event === 'HONEYPOT_REDIRECT');
+  if (hpEl) hpEl.textContent = hpLogs.length;
+
+  const hpCount = document.getElementById('hp-log-count');
+  if (hpCount) hpCount.textContent = logs.length + ' entries';
+
+  const hpDB = document.getElementById('hp-count');
+  if (hpDB) hpDB.textContent = logs.length;
+  const hpLast = document.getElementById('hp-last');
+  if (hpLast && logs[0]) hpLast.textContent = new Date(logs[0].ts).toLocaleTimeString('en-GB');
+
+  const secEventsEl = document.getElementById('sec-events');
+  const securityEvents = logs.filter(l => ['SQL_INJECTION_DETECTED','HONEYPOT_HIT','HONEYPOT_REDIRECT','ACCESS_DENIED'].includes(l.event));
+  if (secEventsEl) secEventsEl.textContent = securityEvents.length || 3;
+
+  const table = document.getElementById('hp-log-table');
+  if (!table) return;
+  if (!logs.length) { table.textContent = 'No entries yet — honeypot log is empty.'; return; }
+  const color = {LOGIN_ATTEMPT:'#60a5fa',LOGIN_SUCCESS:'#22c55e',ACCESS_DENIED:'#f87171',HONEYPOT_HIT:'#fbbf24',SQL_INJECTION_DETECTED:'#f87171',HONEYPOT_REDIRECT:'#fbbf24',PAGE_VISIT:'#a78bfa'};
+  table.innerHTML = logs.slice(0,50).map(l =>
+    `<span style="color:#888">${new Date(l.ts).toLocaleString('en-GB')}</span>  ` +
+    `<span style="color:${color[l.event]||'#e0e0e0'}">${l.event.padEnd(28,' ')}</span>  ` +
+    `<span style="color:#d0d0d0">user=${l.user||'—'}  ua=${(l.ua||'').slice(0,40)}${(l.ua||'').length>40?'…':''}</span>`
+  ).join('\n');
+}
+
+/* ── CHARTS ──────────────────────────────────────────── */
+function mkChart(id, labels, datasets, type='line') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const ctx = el.getContext('2d');
+  new Chart(ctx, {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display: datasets.length > 1, labels:{ boxWidth:10, font:{ size:11 } } } },
+      scales:{
+        x:{ grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ font:{size:10}, maxTicksLimit:8 } },
+        y:{ grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ font:{size:10} } }
+      }
+    }
+  });
+}
+
+window.addEventListener('load', () => {
+  const hours = Array.from({length:24},(_,i)=>i+':00');
+  const days  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const rand  = (base,range,n=24) => Array.from({length:n},()=>+(base+Math.random()*range).toFixed(1));
+
+  // CPU + Network 24h
+  mkChart('cpu-chart', hours, [
+    { label:'CPU %',  data:rand(25,30), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.1)', tension:.4, fill:true, borderWidth:2 },
+    { label:'Net I/O %', data:rand(10,20), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.08)', tension:.4, fill:true, borderWidth:2 },
+  ]);
+  // DB writes
+  mkChart('db-writes-chart', hours, [
+    { label:'Rows/min', data:rand(60,40), borderColor:'#5a9e2f', backgroundColor:'rgba(90,158,47,.1)', tension:.4, fill:true, borderWidth:2 }
+  ]);
+  // Raw moisture
+  mkChart('raw-moisture-chart', days, [
+    { label:'F1 Rice',    data:rand(75,15,7), borderColor:'#22c55e', tension:.4, borderWidth:2 },
+    { label:'F3 Coconut', data:rand(30,12,7), borderColor:'#ef4444', tension:.4, borderWidth:2 },
+    { label:'F7 Shallots',data:rand(25,15,7), borderColor:'#f59e0b', tension:.4, borderWidth:2 },
+  ]);
+  // Raw temp
+  mkChart('raw-temp-chart', hours, [
+    { label:'Temp °C', data:rand(26,8), borderColor:'#f59e0b', tension:.4, borderWidth:2 },
+    { label:'Humidity %', data:rand(60,18), borderColor:'#3b82f6', tension:.4, borderWidth:2 },
+  ]);
+  // API requests
+  mkChart('api-chart', hours, [
+    { label:'Requests', data:rand(400,600), borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.08)', tension:.4, fill:true, borderWidth:2, type:'bar' },
+  ], 'bar');
+  // Pipeline throughput
+  mkChart('pipe-chart', hours, [
+    { label:'Msg/min', data:rand(55,25), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.1)', tension:.4, fill:true, borderWidth:2 }
+  ]);
+});
+
+// Load Chart.js
+const s = document.createElement('script');
+s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+document.head.appendChild(s);
+
+/* ── MOBILE MENU ─────────────────────────────────────── */
+window.addEventListener('resize', () => {
+  const btn = document.getElementById('menuBtn');
+  if (btn) btn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+});
+window.dispatchEvent(new Event('resize'));
+</script>
+</body>
+</html>

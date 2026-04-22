@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agri Cloud™ Smart Farm Portal — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #5a9e2f;
+    --green-dim: #7bc44a;
+    --green-dark: #2d5a1b;
+    --green-glow: rgba(90,158,47,0.2);
+    --bg: #1a3a0a;
+    --panel: rgba(255,248,220,0.93);
+    --text: #2d1a08;
+    --text-dim: #7a5c2e;
+    --red: #c0392b;
+    --amber: #e67e22;
+    --sky-top: #87ceeb;
+    --sky-mid: #b8e4f5;
+    --soil: #6b3d1e;
+    --wheat: #d4a017;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    background: linear-gradient(180deg, #87ceeb 0%, #b8e4f5 35%, #c8e8a0 55%, #5a8a2a 65%, #3d6b1a 80%, #2d5010 100%);
+  }
+
+  /* Animated clouds */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 120px 50px at 15% 12%, rgba(255,255,255,0.85) 0%, transparent 70%),
+      radial-gradient(ellipse 80px 35px at 20% 10%, rgba(255,255,255,0.7) 0%, transparent 70%),
+      radial-gradient(ellipse 150px 55px at 55% 8%, rgba(255,255,255,0.8) 0%, transparent 70%),
+      radial-gradient(ellipse 100px 40px at 62% 6%, rgba(255,255,255,0.65) 0%, transparent 70%),
+      radial-gradient(ellipse 90px 38px at 82% 14%, rgba(255,255,255,0.75) 0%, transparent 70%);
+    animation: cloudDrift 30s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes cloudDrift {
+    0%   { background-position: 0px 0px; transform: translateX(0); }
+    100% { background-position: 200px 0px; transform: translateX(60px); }
+  }
+
+  /* Sun */
+  body::after {
+    content: '☀';
+    position: fixed; top: 2rem; right: 3rem;
+    font-size: 3rem;
+    filter: drop-shadow(0 0 20px #ffe066) drop-shadow(0 0 40px #ffaa00);
+    animation: sunPulse 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes sunPulse { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.08) rotate(5deg)} }
+
+  /* Farm canvas overlay */
+  #farm-canvas {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+
+
+  /* ── STATUS BAR ─────────────────────────────────── */
+  .status-bar {
+    position: fixed; top:0; left:0; right:0;
+    background: rgba(255,248,220,0.92);
+    border-bottom: 2px solid rgba(90,158,47,0.4);
+    padding: 0.5rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; color: var(--text-dim);
+    z-index: 100;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+  .status-dot { width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; margin-right:6px; animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .status-live { color: var(--green); font-weight:700; }
+
+  /* ── DARK MODE VARS ─────────────────────────────── */
+  body.dark-mode {
+    background: linear-gradient(180deg, #0a1a2e 0%, #0d2137 35%, #0a2010 55%, #051a05 65%, #030f03 80%, #020a02 100%);
+  }
+  body.dark-mode::before {
+    background:
+      radial-gradient(ellipse 120px 50px at 15% 12%, rgba(150,180,220,0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 80px 35px at 20% 10%, rgba(150,180,220,0.2) 0%, transparent 70%),
+      radial-gradient(ellipse 150px 55px at 55% 8%, rgba(150,180,220,0.25) 0%, transparent 70%),
+      radial-gradient(ellipse 100px 40px at 62% 6%, rgba(150,180,220,0.2) 0%, transparent 70%),
+      radial-gradient(ellipse 90px 38px at 82% 14%, rgba(150,180,220,0.22) 0%, transparent 70%);
+  }
+  body.dark-mode::after { content: '🌕'; filter: drop-shadow(0 0 20px #ffe8a0) drop-shadow(0 0 50px #aa8800); }
+  body.dark-mode .status-bar { background: rgba(5,15,5,0.95); border-bottom-color: rgba(0,255,106,0.25); color: #4a8f5a; }
+  body.dark-mode .status-live { color: #00ff6a; }
+  body.dark-mode .status-dot { background: #00ff6a; }
+  body.dark-mode .login-card { background: rgba(4,18,8,0.95); border-top-color: #00ff6a; box-shadow: 0 25px 70px rgba(0,0,0,0.5), 0 8px 25px rgba(0,255,106,0.08); color: #a0ffb8; }
+  body.dark-mode .login-card::before { content: '🌿'; }
+  body.dark-mode .login-card::after { content: '🌿'; }
+  body.dark-mode .logo-title { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,106,0.4); }
+  body.dark-mode .logo-sub { color: rgba(160,255,184,0.7); }
+  body.dark-mode .version-badge { background: rgba(0,255,106,0.1); border-color: rgba(0,255,106,0.3); color: #00ff6a; }
+  body.dark-mode .card-header { color: #4a8f5a; border-bottom-color: rgba(0,255,106,0.15); }
+  body.dark-mode .field-label { color: #4a8f5a; }
+  body.dark-mode .field-input { background: rgba(0,30,10,0.6); border-color: rgba(0,255,106,0.2); color: #a0ffb8; }
+  body.dark-mode .field-input::placeholder { color: #3a6a4a; }
+  body.dark-mode .field-input:focus { background: rgba(0,40,15,0.8); border-color: #00ff6a; box-shadow: 0 0 0 3px rgba(0,255,106,0.1); }
+  body.dark-mode .field-check { color: #4a8f5a; }
+  body.dark-mode .field-link { color: #00ff6a; }
+  body.dark-mode .login-btn { background: linear-gradient(135deg, #00cc55, #008833); box-shadow: 0 4px 15px rgba(0,255,106,0.25); }
+  body.dark-mode .login-btn:hover { box-shadow: 0 8px 25px rgba(0,255,106,0.4); }
+  body.dark-mode .sys-info { border-top-color: rgba(0,255,106,0.15); color: #4a8f5a; }
+  body.dark-mode .sys-val { color: #00cc55; }
+  body.dark-mode .warn-box { background: rgba(255,170,0,0.05); border-color: rgba(255,170,0,0.2); border-left-color: #ffaa00; color: #cc8800; }
+  body.dark-mode .error-msg { background: rgba(255,51,85,0.08); border-color: rgba(255,51,85,0.3); border-left-color: #ff3355; color: #ff8aa0; }
+
+  /* ── DARK MODE TOGGLE ───────────────────────────── */
+  .dark-toggle {
+    background: none; border: 1px solid currentColor;
+    color: inherit; font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 2px;
+    padding: 2px 10px; cursor: pointer;
+    border-radius: 2px; opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .dark-toggle:hover { opacity: 1; }
+
+  /* ── CONTAINER ──────────────────────────────────── */
+  .container {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 5rem 1rem 2rem;
+    position: relative; z-index: 1;
+  }
+
+  /* ── LOGO ───────────────────────────────────────── */
+  .logo-section {
+    text-align: center; margin-bottom: 2.5rem;
+    animation: fadeInDown 0.8s ease;
+  }
+  @keyframes fadeInDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
+
+  .logo-icon {
+    font-size: 4rem; margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-10px) rotate(3deg)} }
+
+  .logo-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem; font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 40px rgba(90,158,47,0.5);
+    letter-spacing: 4px;
+  }
+  .logo-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; color: rgba(255,255,255,0.75);
+    letter-spacing: 5px; margin-top: 0.3rem;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .version-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem; padding: 3px 12px;
+    border-radius: 20px; margin-top: 0.6rem; letter-spacing: 2px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── LOGIN CARD ─────────────────────────────────── */
+  .login-card {
+    background: rgba(255,252,240,0.96);
+    border-radius: 20px;
+    border: none;
+    border-top: 5px solid var(--green);
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 2.5rem 2.5rem 2rem;
+    position: relative;
+    box-shadow:
+      0 25px 70px rgba(0,0,0,0.22),
+      0 8px 25px rgba(90,158,47,0.15),
+      0 0 0 1px rgba(255,255,255,0.6) inset;
+    animation: fadeInUp 0.7s cubic-bezier(.22,.68,0,1.2) 0.15s both;
+    backdrop-filter: blur(16px);
+  }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(40px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  /* Leaf accents */
+  .login-card::before {
+    content: '🌿'; position: absolute; top:-14px; left:20px;
+    font-size: 1.6rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+  }
+  .login-card::after {
+    content: '🌿'; position: absolute; top:-14px; right:20px;
+    font-size: 1.6rem; transform: scaleX(-1);
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+  }
+
+  .card-header {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem; color: var(--text-dim);
+    letter-spacing: 3px;
+    margin-bottom: 1.8rem; padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(90,158,47,0.2);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── FORM FIELDS ────────────────────────────────── */
+  .field-group { margin-bottom: 1.2rem; }
+
+  .field-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem; color: var(--text-dim);
+    letter-spacing: 2px; margin-bottom: 0.4rem;
+    text-transform: uppercase; display: block;
+  }
+
+  .field-input {
+    width: 100%;
+    background: rgba(255,255,255,0.7);
+    border: 1.5px solid rgba(90,158,47,0.25);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.88rem; padding: 0.7rem 1rem;
+    outline: none; transition: all 0.25s; letter-spacing: 1px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) inset;
+  }
+  .field-input::placeholder { color: #b8a090; letter-spacing: 0px; }
+  .field-input:focus {
+    border-color: var(--green);
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 0 0 3px rgba(90,158,47,0.12), 0 1px 4px rgba(0,0,0,0.05) inset;
+  }
+
+  /* ── CHECKBOX ROW ───────────────────────────────── */
+  .field-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.4rem;
+  }
+  .field-check {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem; color: var(--text-dim);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .field-check input { accent-color: var(--green); }
+  .field-link {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem; color: var(--green);
+    letter-spacing: 1px; cursor: pointer;
+    text-decoration: none; font-weight: 600;
+  }
+  .field-link:hover { text-decoration: underline; }
+
+  /* ── LOGIN BUTTON ───────────────────────────────── */
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #5a9e2f, #3d7a1a);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 3px; padding: 0.9rem;
+    cursor: pointer; transition: all 0.25s;
+    text-transform: uppercase;
+    position: relative; overflow: hidden;
+    box-shadow: 0 4px 15px rgba(90,158,47,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+  }
+  .login-btn::before {
+    content: '';
+    position: absolute; left:-100%; top:0;
+    width:100%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    transition: left 0.45s;
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(90,158,47,0.45); }
+  .login-btn:hover::before { left: 100%; }
+  .login-btn:active { transform: translateY(0); }
+  .login-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+  .login-btn.loading {
+    pointer-events: none;
+    background: linear-gradient(135deg, #3d7a1a, #2d5a10);
+  }
+  .login-btn.loading::after {
+    content: '● ● ●';
+    position: absolute; left:50%; top:50%;
+    transform: translate(-50%,-50%);
+    font-size: 0.5rem; letter-spacing: 6px;
+    animation: loadBlink 0.6s step-end infinite;
+    color: rgba(255,255,255,0.8);
+  }
+  @keyframes loadBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── ERROR MESSAGE ──────────────────────────────── */
+  .error-msg {
+    display: none;
+    margin-top: 1rem;
+    background: rgba(192,57,43,0.07);
+    border: 1px solid rgba(192,57,43,0.25);
+    border-left: 3px solid #c0392b;
+    color: #a02a1e;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; padding: 0.65rem 1rem;
+    letter-spacing: 1px; border-radius: 6px; text-align: center;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  /* ── SYS INFO GRID ──────────────────────────────── */
+  .sys-info {
+    margin-top: 1.5rem; padding-top: 1.2rem;
+    border-top: 1px dashed rgba(90,158,47,0.25);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; color: var(--text-dim);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem;
+  }
+  .sys-row { display: flex; justify-content: space-between; gap: 0.5rem; }
+  .sys-val { color: #4a7a28; font-weight: 600; }
+
+  /* ── WARNING BOX ────────────────────────────────── */
+  .warn-box {
+    margin-top: 1.2rem;
+    background: rgba(230,126,34,0.06);
+    border: 1px solid rgba(230,126,34,0.2);
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; color: #b5611a;
+    letter-spacing: 0.5px; line-height: 1.7;
+  }
+
+
+
+
+
+  /* ── ACCESS DENIED OVERLAY ──────────────────────── */
+  .denied-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(20,8,4,0.97);
+    z-index: 1000; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 2rem;
+  }
+  .denied-overlay.show { display: flex; }
+
+  .denied-icon { font-size: 4rem; margin-bottom: 1.5rem; animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-10px)} 40%{transform:translateX(10px)}
+    60%{transform:translateX(-8px)}  80%{transform:translateX(8px)}
+  }
+  .denied-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem; font-weight: 900; color: var(--red);
+    text-shadow: 0 0 40px rgba(255,51,85,0.8);
+    letter-spacing: 6px; margin-bottom: 0.5rem;
+  }
+  .denied-sub {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-dim); font-size: 0.9rem;
+    letter-spacing: 3px; margin-bottom: 2rem; max-width: 460px;
+  }
+  .denied-log {
+    background: rgba(255,51,85,0.05);
+    border: 1px solid rgba(255,51,85,0.3);
+    padding: 1.5rem 2rem; max-width: 500px; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; color: #ff8899;
+    line-height: 2; text-align: left; margin-bottom: 1.5rem;
+  }
+  .denied-log .label { color: var(--text-dim); }
+  .denied-log .val   { color: var(--red); }
+
+  .redirect-bar {
+    margin-top: 1rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; color: var(--text-dim);
+  }
+  .progress-bar {
+    width: 300px; height: 2px;
+    background: rgba(255,255,255,0.1);
+    margin: 0.75rem auto 0; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--red);
+    width: 0%; animation: fillBar 5s linear forwards;
+  }
+  @keyframes fillBar { from{width:0%} to{width:100%} }
+
+  /* ── SUCCESS OVERLAY ────────────────────────────── */
+  .success-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,20,6,0.97);
+    z-index: 1000; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 2rem;
+  }
+  .success-overlay.show { display: flex; }
+  .success-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem; font-weight: 900; color: var(--green);
+    text-shadow: 0 0 40px rgba(90,158,47,0.8);
+    letter-spacing: 6px; margin: 1rem 0 0.5rem;
+  }
+  .success-sub {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-dim); font-size: 0.85rem; letter-spacing: 3px;
+    margin-bottom: 1.5rem;
+  }
+  .success-log {
+    background: rgba(90,158,47,0.08);
+    border: 1px solid rgba(90,158,47,0.3);
+    padding: 1.25rem 2rem; max-width: 460px; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; color: #7dce8d;
+    line-height: 2; text-align: left;
+  }
+  .success-log .s-label { color: var(--text-dim); }
+  .success-log .s-val   { color: var(--green); }
+  .success-bar {
+    margin-top: 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; color: var(--text-dim);
+  }
+  .success-prog-bar {
+    width: 300px; height: 2px;
+    background: rgba(255,255,255,0.1);
+    margin: 0.75rem auto 0; overflow: hidden;
+  }
+  .success-prog-fill {
+    height: 100%; background: var(--green);
+    width: 0%;
+  }
+</style>
+</head>
+<body>
+
+
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div><span class="status-dot"></span><span class="status-live">SYSTEM ONLINE</span> — AGRI CLOUD SECURE PORTAL v2.1</div>
+  <div id="clock">--:--:--</div>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span>NODE: AGRI-CLUSTER-07 | TLS 1.3 ACTIVE</span>
+    <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">🌙 NIGHT</button>
+  </div>
+</div>
+
+<canvas id="farm-canvas"></canvas>
+
+<div class="container">
+
+  <!-- Logo -->
+  <div class="logo-section">
+    <div class="logo-icon">🌾</div>
+    <div class="logo-title">AGRI CLOUD™</div>
+    <div class="logo-sub">SMART FARM MANAGEMENT SYSTEM</div>
+    <div class="version-badge">v2.1.4 — PRODUCTION</div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="login-card">
+    <div class="card-header">
+      <span>SECURE ACCESS TERMINAL</span>
+      <span style="color:var(--green)">⬤ ONLINE</span>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Farmer ID</div>
+      <input class="field-input" type="text" id="username" placeholder="e.g. FARM_ADMIN_01" autocomplete="off">
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Access Key</div>
+      <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="off">
+    </div>
+
+    <div class="field-row">
+      <label class="field-check">
+        <input type="checkbox"> KEEP SESSION ACTIVE
+      </label>
+      <a href="#" class="field-link">FORGOT KEY?</a>
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="attemptLogin()">▶ AUTHENTICATE ACCESS</button>
+    <div class="error-msg" id="error-msg">⛔ CREDENTIAL MISMATCH — ACCESS DENIED</div>
+
+    <div class="sys-info">
+      <div class="sys-row"><span>PORTAL</span><span class="sys-val">CROP MONITOR</span></div>
+      <div class="sys-row"><span>REGION</span><span class="sys-val">IN-KL-07</span></div>
+      <div class="sys-row"><span>SENSORS</span><span class="sys-val" id="sensor-count">247 ACTIVE</span></div>
+      <div class="sys-row"><span>UPTIME</span><span class="sys-val">99.97%</span></div>
+      <div class="sys-row"><span>PROTOCOL</span><span class="sys-val">TLS 1.3</span></div>
+      <div class="sys-row"><span>SESSION</span><span class="sys-val" id="session-id">--</span></div>
+    </div>
+
+    <div class="warn-box">
+      ⚠ AUTHORISED ACCESS ONLY — This system monitors critical agriculture infrastructure including irrigation control, soil sensors, and crop analytics. Unauthorised access attempts are logged, fingerprinted, and reported to the security team.
+    </div>
+  </div>
+
+
+
+</div>
+
+<!-- ACCESS DENIED Overlay -->
+<div class="denied-overlay" id="denied-overlay">
+  <div class="denied-icon">🚫</div>
+  <div class="denied-title">ACCESS BLOCKED</div>
+  <div class="denied-sub" id="denied-sub">MAX ATTEMPTS REACHED — SYSTEM LOCKED</div>
+  <div class="denied-log">
+    <div><span class="label">TIMESTAMP  : </span><span class="val" id="d-time">—</span></div>
+    <div><span class="label">USER INPUT : </span><span class="val" id="d-user">—</span></div>
+    <div><span class="label">BROWSER    : </span><span class="val" id="d-browser">—</span></div>
+    <div><span class="label">STATUS     : </span><span class="val">CREDENTIAL MISMATCH</span></div>
+    <div><span class="label">ACTION     : </span><span class="val">INCIDENT RECORDED ✓</span></div>
+    <div><span class="label">ALERT SENT : </span><span class="val">SECURITY TEAM NOTIFIED ✓</span></div>
+  </div>
+  <div class="redirect-bar">
+    CONNECTION WILL BE TERMINATED IN 5 SECONDS
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+</div>
+
+<!-- ACCESS GRANTED Overlay -->
+<div class="success-overlay" id="success-overlay">
+  <div style="font-size:3.5rem;filter:drop-shadow(0 0 20px var(--green))">🌾</div>
+  <div class="success-title">ACCESS GRANTED</div>
+  <div class="success-sub">IDENTITY VERIFIED — LOADING FARM DASHBOARD</div>
+  <div class="success-log">
+    <div><span class="s-label">TIMESTAMP  : </span><span class="s-val" id="s-time">—</span></div>
+    <div><span class="s-label">USER       : </span><span class="s-val" id="s-user">—</span></div>
+    <div><span class="s-label">FARM ID    : </span><span class="s-val">AC-KL-2847</span></div>
+    <div><span class="s-label">CLEARANCE  : </span><span class="s-val">LEVEL 3 — FARM OWNER</span></div>
+    <div><span class="s-label">STATUS     : </span><span class="s-val">SESSION ESTABLISHED ✓</span></div>
+  </div>
+  <div class="success-bar">
+    REDIRECTING TO FARM DASHBOARD...
+    <div class="success-prog-bar"><div class="success-prog-fill" id="success-fill"></div></div>
+  </div>
+</div>
+
+<script src="js/honeypot.js"></script>
+<script>
+// ── CONFIG ───────────────────────────────────────────
+// Each user has a password and destination page
+const VALID_USERS = {
+  "farmer.rajan":   { pass: "Harvest@2024", dest: "farm-details.html" },
+  "agri@admin":     { pass: "AgriAdmin@",   dest: "server-data.html"  },
+  "krishna.farm":   { pass: "Paddy#Field9", dest: "farm-details.html" },
+  "meera.grower":   { pass: "SoilSeed$7",   dest: "farm-details.html" },
+  "thomas.agri":    { pass: "Keral@Farm3",  dest: "farm-details.html" },
+  "admin@honeypot": { pass: "Honeypot@admin",    dest: "honeypot_dashboard.html" },
+};
+
+// Honeypot credentials — first attempt: show error, subsequent: fake-page.html
+const HONEYPOT_CREDS = [
+  { u: "admin",     p: "admin"    },
+  { u: "admin",     p: "123456"   },
+  { u: "admin",     p: "password" },
+];
+
+// SQL injection patterns
+const SQL_PATTERNS = [
+  /'\s*or\s*'1'\s*=\s*'1/i,
+  /'\s*or\s+1\s*=\s*1/i,
+  /--\s/,
+  /;\s*drop\s+table/i,
+  /union\s+select/i,
+  /'\s*;\s*/i,
+  /1\s*=\s*1/i,
+];
+
+// ── COUNTERS ─────────────────────────────────────────
+let visits        = parseInt(localStorage.getItem('hp_visits')   || '0');
+let attempts      = parseInt(localStorage.getItem('hp_attempts') || '0');
+let denied        = parseInt(localStorage.getItem('hp_denied')   || '0');
+let failedAttempts = 0;
+
+// Track honeypot warnings per credential combo this session
+const honeypotWarned = new Set();
+
+function isHoneypot(user, pass) {
+  return HONEYPOT_CREDS.some(c =>
+    c.u.toLowerCase() === user.toLowerCase() && c.p === pass
+  );
+}
+
+function isSQLInjection(user, pass) {
+  return SQL_PATTERNS.some(p => p.test(user) || p.test(pass));
+}
+
+function redirectToFake(reason, user) {
+  saveLog({ event: 'HONEYPOT_REDIRECT', reason, ts: new Date().toISOString(), user, ua: navigator.userAgent });
+  setTimeout(() => { window.location.href = 'fake-page.html'; }, 1200);
+}
+
+// ── CLOCK ─────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── DARK MODE ─────────────────────────────────────────
+function toggleDark() {
+  const dark = document.body.classList.toggle('dark-mode');
+  document.getElementById('dark-toggle').textContent = dark ? '☀ DAY' : '🌙 NIGHT';
+  localStorage.setItem('agri_dark', dark ? '1' : '0');
+}
+if (localStorage.getItem('agri_dark') === '1') toggleDark();
+
+document.getElementById('session-id').textContent =
+  'SES-' + Math.random().toString(36).substr(2,8).toUpperCase();
+
+// ── SENSOR COUNT FLICKER ──────────────────────────────
+setInterval(() => {
+  const base = 247;
+  document.getElementById('sensor-count').textContent =
+    (base + Math.floor((Math.random()-0.5)*4)) + ' ACTIVE';
+}, 5000);
+
+// ── PAGE VISIT LOG ────────────────────────────────────
+(function logVisit() {
+  visits++;
+  localStorage.setItem('hp_visits', visits);
+  saveLog({ event:'PAGE_VISIT', ts: new Date().toISOString(), ua: navigator.userAgent });
+})();
+
+function saveLog(entry) {
+  const all = JSON.parse(localStorage.getItem('honeypot_logs') || '[]');
+  all.unshift(Object.assign({ id: Date.now() }, entry));
+  if (all.length > 200) all.pop();
+  localStorage.setItem('honeypot_logs', JSON.stringify(all));
+}
+
+function addTicker() {} // stub (ticker removed)
+
+// ── LOGIN FUNCTION ────────────────────────────────────
+function attemptLogin() {
+  const rawUser = document.getElementById('username').value.trim();
+  const rawPass = document.getElementById('password').value;
+  const user    = rawUser || 'ANONYMOUS';
+  const btn     = document.getElementById('login-btn');
+  const errEl   = document.getElementById('error-msg');
+
+  const origText = btn.textContent;
+  btn.classList.add('loading');
+  btn.textContent = '';
+  errEl.style.display = 'none';
+
+  attempts++;
+  localStorage.setItem('hp_attempts', attempts);
+  saveLog({ event:'LOGIN_ATTEMPT', ts: new Date().toISOString(), user, ua: navigator.userAgent });
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.textContent = origText;
+
+    // ── 1. SQL INJECTION DETECTION ───────────────────
+    if (isSQLInjection(rawUser, rawPass)) {
+      saveLog({ event:'SQL_INJECTION_DETECTED', ts: new Date().toISOString(), user, ua: navigator.userAgent });
+      errEl.textContent = '⛔ CREDENTIAL MISMATCH — ACCESS DENIED';
+      errEl.style.display = 'block';
+      flashRed();
+      redirectToFake('SQL_INJECTION', user);
+      return;
+    }
+
+    // ── 2. VALID USER CHECK ──────────────────────────
+    const record = VALID_USERS[rawUser];
+    if (record && record.pass === rawPass) {
+      saveLog({ event:'LOGIN_SUCCESS', ts: new Date().toISOString(), user });
+
+      const overlay = document.getElementById('success-overlay');
+      overlay.classList.add('show');
+      document.getElementById('s-time').textContent = new Date().toLocaleString('en-GB');
+      document.getElementById('s-user').textContent = user.toUpperCase();
+
+      const fill = document.getElementById('success-fill');
+      fill.style.transition = 'width 2s linear';
+      setTimeout(() => { fill.style.width = '100%'; }, 50);
+      setTimeout(() => { window.location.href = record.dest; }, 2200);
+      return;
+    }
+
+    // ── 3. HONEYPOT CREDENTIAL CHECK ────────────────
+    if (isHoneypot(rawUser, rawPass)) {
+      const key = rawUser.toLowerCase() + '::' + rawPass;
+      denied++;
+      localStorage.setItem('hp_denied', denied);
+      saveLog({ event:'HONEYPOT_HIT', ts: new Date().toISOString(), user, ua: navigator.userAgent });
+
+      if (!honeypotWarned.has(key)) {
+        // First attempt — just show the error
+        honeypotWarned.add(key);
+        errEl.textContent = '⛔ CREDENTIAL MISMATCH — ACCESS DENIED';
+        errEl.style.display = 'block';
+        flashRed();
+      } else {
+        // Repeat attempt — silently funnel to fake page
+        errEl.textContent = '⛔ CREDENTIAL MISMATCH — ACCESS DENIED';
+        errEl.style.display = 'block';
+        flashRed();
+        redirectToFake('HONEYPOT_REPEAT', user);
+      }
+      document.getElementById('password').value = '';
+      return;
+    }
+
+    // ── 4. GENERIC FAIL ──────────────────────────────
+    failedAttempts++;
+    denied++;
+    localStorage.setItem('hp_denied', denied);
+    saveLog({ event:'ACCESS_DENIED', ts: new Date().toISOString(), user, ua: navigator.userAgent });
+
+    errEl.textContent = '⛔ CREDENTIAL MISMATCH — ACCESS DENIED';
+    errEl.style.display = 'block';
+    flashRed();
+    document.getElementById('password').value = '';
+
+    if (failedAttempts >= 3) {
+      const overlay = document.getElementById('denied-overlay');
+      overlay.classList.add('show');
+      document.getElementById('d-time').textContent = new Date().toLocaleString('en-GB');
+      document.getElementById('d-user').textContent = user.toUpperCase();
+      document.getElementById('d-browser').textContent = navigator.userAgent.split(' ').slice(-2).join(' ');
+
+      btn.disabled = true;
+
+      const fill = document.getElementById('prog-fill');
+      fill.style.animation = 'none'; fill.offsetHeight;
+      fill.style.animation = 'fillBar 5s linear forwards';
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        failedAttempts = 0;
+        btn.disabled = false;
+        document.getElementById('session-id').textContent =
+          'SES-' + Math.random().toString(36).substr(2,8).toUpperCase();
+      }, 5000);
+    }
+  }, 900);
+}
+
+function flashRed() {
+  const u = document.getElementById('username');
+  const p = document.getElementById('password');
+  u.style.borderColor = 'var(--red)';
+  p.style.borderColor = 'var(--red)';
+  setTimeout(() => { u.style.borderColor = ''; p.style.borderColor = ''; }, 1500);
+}
+
+
+// ── ENTER KEY ─────────────────────────────────────────
+document.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+(function() {
+  const canvas = document.getElementById('farm-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── WHEAT STALKS ──────────────────────────────────────
+  const stalks = [];
+  const STALK_COUNT = 60;
+  for (let i = 0; i < STALK_COUNT; i++) {
+    stalks.push({
+      x: Math.random() * window.innerWidth,
+      baseY: window.innerHeight * (0.62 + Math.random() * 0.38),
+      height: 40 + Math.random() * 50,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.6,
+      thickness: 1.5 + Math.random() * 1.5,
+      color: `hsl(${40 + Math.random()*20}, ${60+Math.random()*20}%, ${45+Math.random()*15}%)`,
+    });
+  }
+
+  // ── BIRDS ─────────────────────────────────────────────
+  const birds = [];
+  for (let i = 0; i < 8; i++) {
+    birds.push({
+      x: Math.random() * window.innerWidth,
+      y: window.innerHeight * (0.05 + Math.random() * 0.2),
+      vx: 0.5 + Math.random() * 1.2,
+      vy: (Math.random() - 0.5) * 0.3,
+      wingPhase: Math.random() * Math.PI * 2,
+      scale: 0.6 + Math.random() * 0.7,
+    });
+  }
+
+  // ── BUTTERFLIES ───────────────────────────────────────
+  const butterflies = [];
+  for (let i = 0; i < 5; i++) {
+    butterflies.push({
+      x: Math.random() * window.innerWidth,
+      y: window.innerHeight * (0.45 + Math.random() * 0.25),
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: (Math.random() - 0.5) * 0.8,
+      phase: Math.random() * Math.PI * 2,
+      color: ['#f97316','#ec4899','#a855f7','#eab308','#06b6d4'][i],
+      scale: 0.8 + Math.random() * 0.5,
+      timer: 0,
+    });
+  }
+
+  // ── DRAW BIRD ─────────────────────────────────────────
+  function drawBird(x, y, wingPhase, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = 'rgba(40,20,5,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    const flap = Math.sin(wingPhase) * 6;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-8, -flap, -16, 0);
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(8, -flap, 16, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── DRAW BUTTERFLY ────────────────────────────────────
+  function drawButterfly(x, y, phase, color, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    const flap = Math.sin(phase) * 0.8 + 0.2;
+    ctx.globalAlpha = 0.85;
+    // left wings
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(-5 * flap, -3, 7 * flap, 5, -Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-4 * flap, 3, 5 * flap, 4, Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+    // right wings
+    ctx.beginPath();
+    ctx.ellipse(5 * flap, -3, 7 * flap, 5, Math.PI+Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(4 * flap, 3, 5 * flap, 4, Math.PI-Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+    // body
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(30,10,0,0.6)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 1.5, 5, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ── DRAW WHEAT STALK ──────────────────────────────────
+  function drawStalk(stalk, t) {
+    const sway = Math.sin(t * stalk.speed + stalk.phase) * 6;
+    const x = stalk.x, y = stalk.baseY;
+    const topX = x + sway, topY = y - stalk.height;
+    ctx.save();
+    ctx.strokeStyle = stalk.color;
+    ctx.lineWidth = stalk.thickness;
+    ctx.lineCap = 'round';
+    // stem
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(x + sway * 0.5, y - stalk.height * 0.5, topX, topY);
+    ctx.stroke();
+    // grain head
+    ctx.fillStyle = stalk.color;
+    ctx.beginPath();
+    ctx.ellipse(topX, topY - 6, 2.5, 8, Math.atan2(sway, stalk.height * 0.3), 0, Math.PI*2);
+    ctx.fill();
+    // side grain wisps
+    for (let side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(topX, topY);
+      ctx.lineTo(topX + side * 5, topY - 3);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ── DRAW FENCE ────────────────────────────────────────
+  function drawFence() {
+    const groundY = canvas.height * 0.63;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(100,60,20,0.55)';
+    ctx.lineWidth = 2.5;
+    // horizontal rails
+    ctx.beginPath();
+    ctx.moveTo(0, groundY - 5); ctx.lineTo(canvas.width, groundY - 5);
+    ctx.moveTo(0, groundY - 18); ctx.lineTo(canvas.width, groundY - 18);
+    ctx.stroke();
+    // posts
+    ctx.lineWidth = 4;
+    for (let fx = 0; fx < canvas.width; fx += 90) {
+      ctx.beginPath();
+      ctx.moveTo(fx, groundY + 5);
+      ctx.lineTo(fx, groundY - 25);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ── MAIN LOOP ─────────────────────────────────────────
+  let t = 0;
+  function draw() {
+    t += 0.016;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Ground stripe
+    const grd = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
+    grd.addColorStop(0, 'rgba(90,140,40,0.25)');
+    grd.addColorStop(1, 'rgba(45,80,16,0.12)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+
+    // Fence
+    drawFence();
+
+    // Wheat
+    stalks.forEach(s => drawStalk(s, t));
+
+    // Birds
+    birds.forEach(b => {
+      b.wingPhase += 0.12;
+      b.x += b.vx;
+      b.y += b.vy + Math.sin(t * 0.5 + b.wingPhase * 0.1) * 0.2;
+      if (b.x > canvas.width + 30) { b.x = -30; b.y = canvas.height * (0.05 + Math.random() * 0.2); }
+      drawBird(b.x, b.y, b.wingPhase, b.scale);
+    });
+
+    // Butterflies
+    butterflies.forEach(bf => {
+      bf.phase += 0.1;
+      bf.timer += 0.016;
+      // gentle drift with occasional direction change
+      if (bf.timer > 2 + Math.random() * 2) {
+        bf.vx = (Math.random() - 0.5) * 1.5;
+        bf.vy = (Math.random() - 0.5) * 1.0;
+        bf.timer = 0;
+      }
+      bf.x += bf.vx;
+      bf.y += bf.vy + Math.sin(bf.phase * 0.5) * 0.3;
+      // bounce off edges
+      if (bf.x < 10 || bf.x > canvas.width - 10) bf.vx *= -1;
+      if (bf.y < canvas.height * 0.3 || bf.y > canvas.height * 0.75) bf.vy *= -1;
+      drawButterfly(bf.x, bf.y, bf.phase, bf.color, bf.scale);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+
+</script>
+</body>
+</html>

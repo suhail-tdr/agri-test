@@ -29,9 +29,9 @@ def simulate_attacker():
         print("[+] Connected! Receiving response from honeypot...")
 
         # Receive the fake banner
-        response = sock.recv(1024).decode("utf-8")
+        response = sock.recv(1024).decode("utf-8", errors="replace")
         print("\n--- ATTACKER SEES THIS ---")
-        print(response)
+        print(response, end="")
         print("--- END OF RESPONSE ---\n")
 
     except ConnectionRefusedError:

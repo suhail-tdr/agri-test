@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agri Cloud — Internal Server Data [RESTRICTED]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+body { background:#0a150c; }
+.config-block {
+  background:#050c06; border:1px solid rgba(45,122,58,0.2);
+  border-radius:var(--radius); padding:1.25rem;
+  font-family:'Courier New',monospace; font-size:0.78rem;
+  line-height:1.9; overflow-x:auto;
+}
+.cf-key   { color:#60a5fa; }
+.cf-val   { color:#fcd34d; }
+.cf-comment { color:rgba(125,206,141,0.45); }
+.cf-str   { color:#86efac; }
+.terminal-block {
+  background:#050c06; border:1px solid rgba(45,122,58,0.2);
+  border-radius:var(--radius); padding:1rem;
+  font-family:'Courier New',monospace; font-size:0.78rem;
+  line-height:1.85; color:#7dce8d;
+  max-height:210px; overflow-y:auto;
+}
+.t-warn   { color:#fbbf24; }
+.t-err    { color:#f87171; }
+.t-info   { color:#60a5fa; }
+.t-dim    { color:rgba(125,206,141,0.4); }
+.t-cursor { display:inline-block;width:7px;height:13px;background:#7dce8d;animation:blink 0.8s infinite;vertical-align:middle; }
+.cred-grid { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+.cred-card {
+  background:var(--amber-light); border:1px solid #fcd34d;
+  border-radius:var(--radius); padding:1.1rem;
+}
+.cred-label { font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--amber);margin-bottom:0.4rem; }
+.cred-val { font-family:'Courier New',monospace;font-size:0.8rem;color:var(--text);word-break:break-all; }
+.cred-note { font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem; }
+.restricted-banner {
+  background:var(--red-light);border:1px solid #fca5a5;border-left:4px solid var(--red);
+  border-radius:var(--radius);padding:0.9rem 1.25rem;
+  display:flex;align-items:center;gap:0.75rem;
+  margin-bottom:1.75rem;font-size:0.88rem;
+  animation:flashL 2s infinite;
+}
+@keyframes flashL { 0%,100%{border-left-color:var(--red)} 50%{border-left-color:#fca5a5} }
+.tag-green { background:var(--green-pale);color:var(--green);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-amber { background:var(--amber-light);color:var(--amber);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-red   { background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-blue  { background:#e0f2fe;color:var(--blue);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+
+/* ── HONEYPOT TRACKER PANEL ── */
+#hp-tracker {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 340px;
+  background: rgba(5, 12, 6, 0.97);
+  border: 1px solid rgba(248,113,113,0.4);
+  border-top: 3px solid #f87171;
+  border-radius: 10px;
+  z-index: 9999;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 0 40px rgba(248,113,113,0.15);
+  animation: slideUp 0.4s ease;
+}
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+#hp-tracker .hp-head {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid rgba(248,113,113,0.2);
+}
+#hp-tracker .hp-pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #f87171;
+  animation: hpBlink 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes hpBlink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(248,113,113,0.5)} 50%{opacity:0.5;box-shadow:0 0 0 5px rgba(248,113,113,0)} }
+#hp-tracker .hp-title { font-size: 0.65rem; color: #f87171; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; flex:1; }
+#hp-tracker .hp-minimize { background:none; border:none; color:rgba(248,113,113,0.5); cursor:pointer; font-size:0.8rem; padding:0 4px; }
+#hp-tracker .hp-minimize:hover { color:#f87171; }
+#hp-tracker .hp-body { padding: 0.85rem; }
+#hp-tracker .hp-visitor {
+  background: rgba(248,113,113,0.07);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.7rem;
+}
+#hp-tracker .hp-row { display:flex; justify-content:space-between; align-items:center; padding:2px 0; }
+#hp-tracker .hp-lbl { color: rgba(248,113,113,0.6); font-size: 0.62rem; text-transform:uppercase; letter-spacing:1px; }
+#hp-tracker .hp-val { color: #fcd34d; font-size: 0.7rem; max-width: 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#hp-tracker .hp-val.red { color: #f87171; }
+#hp-tracker .hp-val.green { color: #7dce8d; }
+#hp-tracker .hp-activity-title {
+  font-size: 0.6rem; color: rgba(248,113,113,0.5); letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:0.4rem; display:flex;
+  align-items:center; gap:0.4rem;
+}
+#hp-tracker .hp-activity-list {
+  max-height: 160px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(248,113,113,0.3) transparent;
+}
+#hp-tracker .hp-event {
+  display: flex; gap: 0.5rem; align-items: flex-start;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(248,113,113,0.08);
+  animation: evIn 0.3s ease;
+}
+@keyframes evIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:translateX(0)} }
+#hp-tracker .hp-event:last-child { border-bottom: none; }
+#hp-tracker .hp-ev-icon { font-size: 0.65rem; flex-shrink:0; width:14px; text-align:center; margin-top:1px; }
+#hp-tracker .hp-ev-text { font-size: 0.67rem; color: rgba(125,206,141,0.8); line-height:1.4; flex:1; }
+#hp-tracker .hp-ev-time { font-size: 0.58rem; color:rgba(125,206,141,0.35); flex-shrink:0; margin-top:2px; }
+#hp-tracker .hp-footer {
+  padding: 0.6rem 0.85rem;
+  border-top: 1px solid rgba(248,113,113,0.15);
+  display: flex; justify-content:space-between; align-items:center;
+}
+#hp-tracker .hp-to-dash {
+  background: rgba(248,113,113,0.12);
+  border: 1px solid rgba(248,113,113,0.35);
+  color: #f87171;
+  font-family: 'Courier New', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+#hp-tracker .hp-to-dash:hover { background: rgba(248,113,113,0.22); border-color: #f87171; }
+#hp-tracker .hp-count { font-size: 0.62rem; color:rgba(248,113,113,0.5); }
+#hp-tracker.minimized .hp-body,
+#hp-tracker.minimized .hp-footer { display:none; }
+</style>
+</head>
+<body>
+<div class="dash-layout">
+
+<!-- SIDEBAR -->
+<aside class="dash-sidebar" id="dashSidebar">
+  <div class="dash-sidebar-logo">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-leaf">🌿</span>
+      <span class="logo-text">Agri <span>Cloud</span></span>
+    </a>
+  </div>
+  <nav class="dash-nav">
+    <div class="dash-nav-section">OVERVIEW</div>
+    <a href="#" class="dash-nav-item" style="text-decoration:none"><span class="nav-icon">📊</span> Farm Dashboard</a>
+    <div class="dash-nav-section">SYSTEM</div>
+    <button class="dash-nav-item"><span class="nav-icon">📋</span> Activity Logs</button>
+    <button class="dash-nav-item"><span class="nav-icon">⚙️</span> Settings</button>
+    <button class="dash-nav-item active"><span class="nav-icon">🗄️</span> Server Data</button>
+    <div class="dash-nav-section">SERVER</div>
+    <button class="dash-nav-item" onclick="scrollTo('sec-db')"><span class="nav-icon">🗃️</span> DB Config</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-api')"><span class="nav-icon">🔑</span> API Keys</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-access')"><span class="nav-icon">🔐</span> Access Logs</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-users')"><span class="nav-icon">👥</span> User Records</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-env')"><span class="nav-icon">🌐</span> Env Variables</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-backup')"><span class="nav-icon">💾</span> Backup Status</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-network')"><span class="nav-icon">📶</span> Network / Ports</button>
+    <button class="dash-nav-item" onclick="scrollTo('sec-terminal')"><span class="nav-icon">💻</span> Live Terminal</button>
+  </nav>
+  <div class="dash-sidebar-footer">
+    <div class="dash-user">
+      <div class="dash-avatar">SK</div>
+      <div class="dash-user-info">
+        <div class="dash-user-name">Suresh Kumar</div>
+        <div class="dash-user-role">Farm Owner · Pro Plan</div>
+      </div>
+      <button class="dash-logout" onclick="location.href='index.html'" title="Logout">⏻</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="dash-main">
+  <div class="dash-topbar">
+    <div class="dash-page-title">
+      Internal Server Data
+      <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">ac-prod-03.agricloud.in · Build v4.7.2 · Uptime: 142d 08h 22m</span>
+    </div>
+    <div class="dash-topbar-actions">
+      <span style="background:var(--red-light);color:var(--red);font-size:0.72rem;font-weight:700;padding:3px 12px;border-radius:20px;animation:flashL 2s infinite">⛔ RESTRICTED ACCESS</span>
+      <a href="honeypot_dashboard.html" style="background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:0.72rem;font-weight:700;padding:5px 14px;border-radius:6px;text-decoration:none;letter-spacing:0.5px;transition:all 0.2s" onmouseover="this.style.background='rgba(248,113,113,0.22)'" onmouseout="this.style.background='rgba(248,113,113,0.12)'">🛡️ Security Dashboard →</a>
+      <button class="dash-notif-btn">🔔<span class="dash-notif-badge"></span></button>
+    </div>
+  </div>
+
+  <div class="dash-content">
+
+    <!-- RESTRICTED BANNER -->
+    <div class="restricted-banner">
+      ⛔ <div><strong style="color:var(--red)">Restricted Area:</strong> This page contains confidential server configuration, credentials, and user data. All access is logged with full visitor fingerprinting. Unauthorised access is a criminal offence under India's IT Act 2000, Sections 66 & 72.</div>
+    </div>
+
+    <!-- SYSTEM HEALTH -->
+    <div class="dash-stats" style="margin-bottom:1.75rem">
+      <div class="dstat"><div class="dstat-label">CPU Load</div><div class="dstat-num" id="s-cpu" style="color:var(--green)">23%</div><div class="dstat-sub">4-core · ac-prod-03</div><div class="dstat-icon">⚙️</div></div>
+      <div class="dstat amber"><div class="dstat-label">RAM Usage</div><div class="dstat-num" id="s-ram">67%</div><div class="dstat-sub">10.7 / 16 GB used</div><div class="dstat-icon">🧠</div></div>
+      <div class="dstat"><div class="dstat-label">Disk /var</div><div class="dstat-num" style="color:var(--green)">41%</div><div class="dstat-sub">820 GB / 2 TB used</div><div class="dstat-icon">💾</div></div>
+      <div class="dstat blue"><div class="dstat-label">Live Connections</div><div class="dstat-num" id="s-conn">148</div><div class="dstat-sub">Active right now</div><div class="dstat-icon">🔌</div></div>
+    </div>
+
+    <!-- ── DB CONFIG ─────────────────────────────── -->
+    <div id="sec-db" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>🗃️ db_config.json — Production Database Credentials</h3>
+        <span class="tbadge tbadge-attempt">⚠ SENSITIVE</span>
+      </div>
+      <div class="dash-card-body">
+        <div class="config-block">
+<span class="cf-comment">// Agri Cloud Production Database — DO NOT share or commit to version control</span>
+{
+  <span class="cf-key">"db_host"</span>:          <span class="cf-str">"db-prod.internal.agricloud.in"</span>,
+  <span class="cf-key">"db_port"</span>:          <span class="cf-val">5432</span>,
+  <span class="cf-key">"db_name"</span>:          <span class="cf-str">"agricloud_prod"</span>,
+  <span class="cf-key">"db_user"</span>:          <span class="cf-str">"ac_db_admin"</span>,
+  <span class="cf-key">"db_password"</span>:      <span class="cf-str">"Agr!C10ud#Prod2024$Kl"</span>,  <span class="cf-comment">// rotate every 90 days</span>
+  <span class="cf-key">"db_replica_host"</span>:  <span class="cf-str">"db-replica.internal.agricloud.in"</span>,
+  <span class="cf-key">"ssl_mode"</span>:         <span class="cf-str">"require"</span>,
+  <span class="cf-key">"ssl_cert"</span>:         <span class="cf-str">"/etc/ssl/agricloud/db-client.crt"</span>,
+  <span class="cf-key">"pool_size"</span>:        <span class="cf-val">20</span>,
+  <span class="cf-key">"max_overflow"</span>:     <span class="cf-val">40</span>,
+  <span class="cf-key">"backup_cron"</span>:      <span class="cf-str">"0 2 * * *"</span>,      <span class="cf-comment">// daily 2:00 AM IST</span>
+  <span class="cf-key">"backup_s3_bucket"</span>: <span class="cf-str">"agricloud-db-backups-prod"</span>,
+  <span class="cf-key">"schema"</span>:           <span class="cf-str">"farm_data"</span>
+}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── API KEYS ─────────────────────────────── -->
+    <div id="sec-api" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>🔑 api_keys.conf — External Service Credentials</h3>
+        <span class="tbadge tbadge-denied">CONFIDENTIAL</span>
+      </div>
+      <div class="dash-card-body">
+        <div class="cred-grid">
+          <div class="cred-card">
+            <div class="cred-label">ISRO MOSDAC Satellite API</div>
+            <div class="cred-val">ISRO-SAT-ACK-7f3a2d9e1b4c8f0a</div>
+            <div class="cred-note">ResourceSat-2A NDVI feed · Expires: Dec 31, 2024</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">IMD Weather Forecast API</div>
+            <div class="cred-val">IMD-WX-API-c2e8b4a1d3f70094</div>
+            <div class="cred-note">Hyper-local 10-day forecast · 3hr interval · Plan: Enterprise</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">AWS Access Key (IAM)</div>
+            <div class="cred-val">AKIAIOSFODNN7ACEXAMPLE</div>
+            <div class="cred-note">Secret: wJalrXUtnFEMI/K7MDENG+bPxR · Region: ap-south-1</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">AWS S3 Bucket</div>
+            <div class="cred-val">agricloud-farm-data-prod · agricloud-db-backups-prod</div>
+            <div class="cred-note">Sensor data archive + daily DB snapshots</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">MQTT IoT Broker Auth</div>
+            <div class="cred-val">mqtt://iot_svc:Agr1Br0k3r$2024@broker.agricloud.in:1883</div>
+            <div class="cred-note">3,247 registered sensor devices · LoRaWAN + WiFi</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">Razorpay Payment Gateway</div>
+            <div class="cred-val">rzp_live_kJ8mN2xQpL4wAb</div>
+            <div class="cred-note">Secret: 9Xf7Kz3mNpQw2Lv · Subscription billing</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">SendGrid Email API</div>
+            <div class="cred-val">SG.xK9mN2aQpL4wAbCdEfGhIj.8Xf7Kz</div>
+            <div class="cred-note">Transactional email · Alerts + reports</div>
+          </div>
+          <div class="cred-card">
+            <div class="cred-label">Twilio SMS / WhatsApp API</div>
+            <div class="cred-val">AC9f3a2d9e1b4c8f0a7b3c2d1e</div>
+            <div class="cred-note">Auth Token: 8xK9mN2aQp · Farm alert SMS India</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACCESS LOGS ─────────────────────────── -->
+    <div id="sec-access" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>🔐 auth.log — Recent Sessions & Access Attempts</h3>
+        <span class="tag-green">● Monitoring Active</span>
+      </div>
+      <div class="dash-card-body" style="padding:0">
+        <table class="threat-table" style="width:100%">
+          <thead><tr><th>TIMESTAMP (IST)</th><th>USER</th><th>IP ADDRESS</th><th>GEO / ISP</th><th>PATH</th><th>USER AGENT</th><th>STATUS</th></tr></thead>
+          <tbody>
+            <tr class="new"><td style="color:var(--text-muted);font-size:0.75rem" id="ts-now">Today 08:42:11</td><td>suresh.kumar</td><td>103.21.58.42</td><td>Tiruvalla, IN · BSNL</td><td>/farm-details.html</td><td style="color:var(--text-muted);font-size:0.75rem">Chrome 119 / Android</td><td><span class="tbadge tbadge-visit">✓ OK</span></td></tr>
+            <tr><td style="color:var(--text-muted);font-size:0.75rem">Today 07:30:04</td><td>system</td><td>10.0.0.3</td><td>Internal · Docker</td><td>/api/v2/backup/run</td><td style="color:var(--text-muted);font-size:0.75rem">Python-requests/2.31</td><td><span class="tbadge tbadge-visit">✓ OK</span></td></tr>
+            <tr><td style="color:var(--text-muted);font-size:0.75rem">Today 06:15:22</td><td>api_service</td><td>10.0.0.5</td><td>Internal · K8s</td><td>/api/v2/sensor/batch</td><td style="color:var(--text-muted);font-size:0.75rem">Node-fetch/3.3.2</td><td><span class="tbadge tbadge-visit">✓ OK</span></td></tr>
+            <tr style="background:var(--red-light)"><td style="font-size:0.75rem;color:var(--red);font-weight:600">Yesterday 18:02:33</td><td style="color:var(--red);font-weight:700">UNKNOWN</td><td style="color:var(--red);font-weight:700">45.76.184.32</td><td style="color:var(--red)">Amsterdam, NL · DigitalOcean</td><td style="color:var(--red)">/internal/server-data</td><td style="color:var(--text-muted);font-size:0.75rem">curl/7.88.1</td><td><span class="tbadge tbadge-denied">⚠ LOGGED</span></td></tr>
+            <tr style="background:rgba(231,76,60,0.05)"><td style="color:var(--text-muted);font-size:0.75rem">Yesterday 18:01:58</td><td style="color:var(--amber);font-weight:600">UNKNOWN</td><td style="color:var(--amber)">45.76.184.32</td><td style="color:var(--amber)">Amsterdam, NL · DigitalOcean</td><td>/farm-details.html</td><td style="color:var(--text-muted);font-size:0.75rem">curl/7.88.1</td><td><span class="tbadge tbadge-attempt">FLAGGED</span></td></tr>
+            <tr style="background:rgba(231,76,60,0.05)"><td style="color:var(--text-muted);font-size:0.75rem">Yesterday 18:01:42</td><td style="color:var(--amber);font-weight:600">UNKNOWN</td><td style="color:var(--amber)">45.76.184.32</td><td style="color:var(--amber)">Amsterdam, NL · DigitalOcean</td><td>/index.html</td><td style="color:var(--text-muted);font-size:0.75rem">curl/7.88.1</td><td><span class="tbadge tbadge-attempt">FLAGGED</span></td></tr>
+            <tr><td style="color:var(--text-muted);font-size:0.75rem">2 days ago 11:24</td><td>suresh.kumar</td><td>103.21.58.42</td><td>Tiruvalla, IN · BSNL</td><td>/api/v2/sensors/config</td><td style="color:var(--text-muted);font-size:0.75rem">Chrome 119 / Android</td><td><span class="tbadge tbadge-visit">✓ OK</span></td></tr>
+            <tr><td style="color:var(--text-muted);font-size:0.75rem">3 days ago 02:00</td><td>system</td><td>10.0.0.3</td><td>Internal · Docker</td><td>/api/v2/backup/run</td><td style="color:var(--text-muted);font-size:0.75rem">Python-requests/2.31</td><td><span class="tbadge tbadge-visit">✓ OK</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── USER RECORDS ─────────────────────────── -->
+    <div id="sec-users" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>👥 user_records.sql — Registered Farm Accounts (sample)</h3>
+        <span style="font-size:0.78rem;color:var(--text-muted)">3,247 total records · Showing 8</span>
+      </div>
+      <div class="dash-card-body" style="padding:0">
+        <table class="market-table">
+          <thead><tr><th>FARM_ID</th><th>OWNER</th><th>PHONE</th><th>DISTRICT</th><th>HECTARES</th><th>CROPS</th><th>PLAN</th><th>JOINED</th><th>LAST LOGIN</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--blue);font-weight:600">AC-KL-2847</td><td>Suresh Kumar</td><td>+91 98765 43210</td><td>Tiruvalla, KL</td><td>14.5</td><td>Rice, Coconut, Turmeric</td><td><span class="tbadge badge-green">PRO</span></td><td>Mar 2021</td><td>08:42 today</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-KL-1134</td><td>Meera Nair</td><td>+91 94470 28811</td><td>Thrissur, KL</td><td>8.2</td><td>Banana, Pepper</td><td><span class="tbadge tbadge-visit">BASIC</span></td><td>Jun 2022</td><td>Yesterday</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-TN-0892</td><td>Arjun Rajan</td><td>+91 98421 67340</td><td>Coimbatore, TN</td><td>22.0</td><td>Cotton, Groundnut</td><td><span class="tbadge badge-green">PRO</span></td><td>Jan 2021</td><td>2 days ago</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-KA-3301</td><td>Lakshmi Devi</td><td>+91 80943 12205</td><td>Mysuru, KA</td><td>5.8</td><td>Coffee, Cardamom</td><td><span class="tbadge tbadge-attempt">TRIAL</span></td><td>Oct 2024</td><td>3 days ago</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-KL-0441</td><td>Thomas Varghese</td><td>+91 94471 88320</td><td>Kottayam, KL</td><td>11.0</td><td>Rubber, Rice</td><td><span class="tbadge badge-green">PRO</span></td><td>Aug 2020</td><td>Today</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-AP-0710</td><td>Venkat Reddy</td><td>+91 99890 34521</td><td>Kurnool, AP</td><td>18.4</td><td>Paddy, Chilli</td><td><span class="tbadge badge-green">PRO</span></td><td>Feb 2022</td><td>4 days ago</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-KL-3819</td><td>Santhosh Pillai</td><td>+91 97441 20034</td><td>Palakkad, KL</td><td>7.1</td><td>Sugarcane, Tapioca</td><td><span class="tbadge tbadge-visit">BASIC</span></td><td>May 2023</td><td>1 week ago</td></tr>
+            <tr><td style="color:var(--blue);font-weight:600">AC-TN-1502</td><td>Anitha Selvam</td><td>+91 96001 54432</td><td>Madurai, TN</td><td>3.2</td><td>Jasmine, Vegetables</td><td><span class="tbadge tbadge-attempt">TRIAL</span></td><td>Nov 2024</td><td>5 days ago</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ENV VARIABLES ────────────────────────── -->
+    <div id="sec-env" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>🌐 .env — Application Environment Variables</h3>
+        <span class="tbadge tbadge-denied">CONFIDENTIAL</span>
+      </div>
+      <div class="dash-card-body">
+        <div class="config-block">
+<span class="cf-comment"># /var/agricloud/.env — Agri Cloud Production Server</span>
+<span class="cf-comment"># DO NOT commit to git — added to .gitignore</span>
+
+<span class="cf-key">NODE_ENV</span>=<span class="cf-str">production</span>
+<span class="cf-key">PORT</span>=<span class="cf-val">3000</span>
+<span class="cf-key">APP_SECRET</span>=<span class="cf-str">xK9mN2aQpL4wAbCdEfGhIjKlMnOpQrSt</span>
+<span class="cf-key">JWT_SECRET</span>=<span class="cf-str">Agr1Cl0ud$JWT#2024!SecureKey@Prod</span>
+<span class="cf-key">SESSION_SECRET</span>=<span class="cf-str">9Xf7Kz3mNpQw2LvRtYuIoPaS</span>
+
+<span class="cf-comment"># Database</span>
+<span class="cf-key">DATABASE_URL</span>=<span class="cf-str">postgresql://ac_db_admin:Agr!C10ud#Prod2024$Kl@db-prod.internal.agricloud.in:5432/agricloud_prod</span>
+<span class="cf-key">REDIS_URL</span>=<span class="cf-str">redis://:RedisP@ss2024!@cache.internal.agricloud.in:6379</span>
+
+<span class="cf-comment"># AWS</span>
+<span class="cf-key">AWS_ACCESS_KEY_ID</span>=<span class="cf-str">AKIAIOSFODNN7ACEXAMPLE</span>
+<span class="cf-key">AWS_SECRET_ACCESS_KEY</span>=<span class="cf-str">wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY</span>
+<span class="cf-key">AWS_REGION</span>=<span class="cf-str">ap-south-1</span>
+<span class="cf-key">S3_BUCKET</span>=<span class="cf-str">agricloud-farm-data-prod</span>
+
+<span class="cf-comment"># Third-party services</span>
+<span class="cf-key">RAZORPAY_KEY_ID</span>=<span class="cf-str">rzp_live_kJ8mN2xQpL4wAb</span>
+<span class="cf-key">RAZORPAY_KEY_SECRET</span>=<span class="cf-str">9Xf7Kz3mNpQw2LvRtYuIoP</span>
+<span class="cf-key">SENDGRID_API_KEY</span>=<span class="cf-str">SG.xK9mN2aQpL4wAbCdEfGhIj.8Xf7KzExample</span>
+<span class="cf-key">TWILIO_ACCOUNT_SID</span>=<span class="cf-str">AC9f3a2d9e1b4c8f0a7b3c2d1e</span>
+<span class="cf-key">TWILIO_AUTH_TOKEN</span>=<span class="cf-str">8xK9mN2aQpL4wAbCdEfGhIjKl</span>
+<span class="cf-key">IMD_API_KEY</span>=<span class="cf-str">IMD-WX-API-c2e8b4a1d3f70094</span>
+<span class="cf-key">ISRO_MOSDAC_KEY</span>=<span class="cf-str">ISRO-SAT-ACK-7f3a2d9e1b4c8f0a</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BACKUP STATUS ────────────────────────── -->
+    <div id="sec-backup" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>💾 Backup Status — Database & File Snapshots</h3>
+        <span class="tag-green">● All backups healthy</span>
+      </div>
+      <div class="dash-card-body" style="padding:0">
+        <table class="threat-table" style="width:100%">
+          <thead><tr><th>BACKUP JOB</th><th>LAST RUN</th><th>SIZE</th><th>DESTINATION</th><th>DURATION</th><th>NEXT RUN</th><th>STATUS</th></tr></thead>
+          <tbody>
+            <tr><td><strong>PostgreSQL Full Dump</strong></td><td>Today 02:00 AM</td><td>4.2 GB</td><td>s3://agricloud-db-backups-prod/daily/</td><td>4m 18s</td><td>Tomorrow 02:00 AM</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+            <tr><td><strong>Redis Snapshot (RDB)</strong></td><td>Today 02:05 AM</td><td>128 MB</td><td>s3://agricloud-db-backups-prod/redis/</td><td>22s</td><td>Tomorrow 02:05 AM</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+            <tr><td><strong>Sensor CSV Archive</strong></td><td>Today 03:00 AM</td><td>892 MB</td><td>s3://agricloud-farm-data-prod/archive/</td><td>1m 44s</td><td>Tomorrow 03:00 AM</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+            <tr><td><strong>App Config Backup</strong></td><td>Yesterday 11:00 PM</td><td>8.4 MB</td><td>/var/backups/agricloud/config/</td><td>3s</td><td>Today 11:00 PM</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+            <tr><td><strong>Weekly Full Backup</strong></td><td>Sunday 01:00 AM</td><td>18.6 GB</td><td>s3://agricloud-db-backups-prod/weekly/</td><td>22m 11s</td><td>Next Sunday</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+            <tr><td><strong>SSL Certificate Backup</strong></td><td>3 days ago</td><td>12 KB</td><td>/etc/ssl/agricloud/backup/</td><td>1s</td><td>Monthly</td><td><span class="tbadge tbadge-visit">✓ Success</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── NETWORK / PORTS ──────────────────────── -->
+    <div id="sec-network" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>📶 Network Configuration & Open Ports</h3>
+        <span class="tag-blue">Server: 45.77.220.184 (Public)</span>
+      </div>
+      <div class="dash-card-body">
+        <div class="dash-grid2" style="margin-bottom:0">
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Open Ports</div>
+            <table class="threat-table" style="width:100%">
+              <thead><tr><th>PORT</th><th>SERVICE</th><th>BIND</th><th>STATE</th></tr></thead>
+              <tbody>
+                <tr><td><strong>22</strong></td><td>SSH</td><td>0.0.0.0</td><td><span class="tbadge tbadge-attempt">Open (key-only)</span></td></tr>
+                <tr><td><strong>80</strong></td><td>HTTP → HTTPS redirect</td><td>0.0.0.0</td><td><span class="tbadge tbadge-visit">Open</span></td></tr>
+                <tr><td><strong>443</strong></td><td>HTTPS (nginx)</td><td>0.0.0.0</td><td><span class="tbadge tbadge-visit">Open</span></td></tr>
+                <tr><td><strong>1883</strong></td><td>MQTT (IoT sensors)</td><td>10.0.0.0/8</td><td><span class="tbadge tbadge-visit">Internal</span></td></tr>
+                <tr><td><strong>3000</strong></td><td>Node.js App</td><td>127.0.0.1</td><td><span class="tbadge tbadge-visit">Localhost</span></td></tr>
+                <tr><td><strong>5432</strong></td><td>PostgreSQL</td><td>10.0.0.0/8</td><td><span class="tbadge tbadge-visit">Internal</span></td></tr>
+                <tr><td><strong>6379</strong></td><td>Redis</td><td>127.0.0.1</td><td><span class="tbadge tbadge-visit">Localhost</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">SSL Certificates</div>
+            <div class="alert-feed">
+              <div class="alert-item"><div class="alert-icon">🔒</div><div class="alert-body"><div class="alert-title">agricloud.in — Let's Encrypt</div><div class="alert-time">Expires: Feb 14, 2025 · Auto-renew ON</div></div></div>
+              <div class="alert-item"><div class="alert-icon">🔒</div><div class="alert-body"><div class="alert-title">*.agricloud.in (wildcard) — Let's Encrypt</div><div class="alert-time">Expires: Feb 14, 2025 · Auto-renew ON</div></div></div>
+              <div class="alert-item"><div class="alert-icon">🔒</div><div class="alert-body"><div class="alert-title">db-prod.internal.agricloud.in — Self-signed</div><div class="alert-time">Expires: Jan 1, 2026 · Internal DB auth</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIVE TERMINAL ─────────────────────────── -->
+    <div id="sec-terminal" class="dash-card" style="margin-bottom:1.5rem">
+      <div class="dash-card-head">
+        <h3>💻 Live System Terminal — nginx/access.log + auth.log</h3>
+        <span class="tag-green">● Streaming</span>
+      </div>
+      <div class="dash-card-body">
+        <div class="terminal-block" id="terminal">
+          <div><span class="t-dim">root@ac-prod-03:~# </span>tail -f /var/log/nginx/access.log /var/log/auth.log</div>
+          <div>103.21.58.42 - suresh [08:42:11] "GET /farm-details.html HTTP/2" 200 48291</div>
+          <div class="t-info">10.0.0.5 - api_svc [08:40:02] "POST /api/v2/sensor/batch HTTP/1.1" 201 182</div>
+          <div>10.0.0.3 - system [07:30:04] "POST /api/v2/backup/run HTTP/1.1" 200 94</div>
+          <div class="t-warn">45.76.184.32 - - [18:02:33] "GET /internal/server-data HTTP/1.1" 200 12847 [HONEYPOT HIT]</div>
+          <div class="t-warn">45.76.184.32 - - [18:01:58] "GET /farm-details.html HTTP/1.1" 200 48291 [FLAGGED]</div>
+          <div class="t-warn">45.76.184.32 - - [18:01:42] "GET / HTTP/1.1" 200 18243 [FLAGGED]</div>
+          <div class="t-err">HONEYPOT: ip=45.76.184.32 ua="curl/7.88.1" tz=Europe/Amsterdam fp=captured ts=1731592353</div>
+          <div class="t-info">103.21.58.42 - suresh [11:24:07] "PUT /api/v2/sensors/config HTTP/2" 200 312</div>
+          <div><span class="t-dim">root@ac-prod-03:~# </span><span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dash-content -->
+</div><!-- /dash-main -->
+</div><!-- /dash-layout -->
+
+<script>
+// Animate system stats
+setInterval(()=>{
+  document.getElementById('s-cpu').textContent = Math.round(18+Math.random()*18)+'%';
+  document.getElementById('s-ram').textContent = Math.round(63+Math.random()*9)+'%';
+  document.getElementById('s-conn').textContent = Math.round(138+Math.random()*24);
+},2500);
+
+// Append live flagged entries to terminal
+const terminal = document.getElementById('terminal');
+const fakeIPs  = ['185.220.101.45','94.102.49.193','45.76.184.32','23.95.97.58','64.225.80.11','178.128.96.44','159.65.220.18'];
+const fakePaths = ['/internal/server-data','/api/v2/admin','/db_config.json','/api_keys.conf','/.env','/user_records.sql','/backup/latest'];
+const fakeGeos  = ['Frankfurt, DE','Bucharest, RO','Amsterdam, NL','New York, US','Singapore, SG','London, GB','Moscow, RU'];
+let logCount = 0;
+setInterval(()=>{
+  if(logCount++%3!==0) return;
+  const ip   = fakeIPs[Math.floor(Math.random()*fakeIPs.length)];
+  const path = fakePaths[Math.floor(Math.random()*fakePaths.length)];
+  const geo  = fakeGeos[Math.floor(Math.random()*fakeGeos.length)];
+  const ts   = new Date().toTimeString().slice(0,8);
+  const line = document.createElement('div');
+  const isHP = path.includes('env') || path.includes('db_config') || path.includes('server-data');
+  line.className = isHP ? 't-err' : 't-warn';
+  line.textContent = isHP
+    ? `HONEYPOT: ip=${ip} path=${path} geo="${geo}" ts=${ts} [CAPTURED]`
+    : `${ip} - - [${ts}] "GET ${path} HTTP/1.1" 200 - [FLAGGED · ${geo}]`;
+  terminal.insertBefore(line, terminal.lastElementChild);
+  terminal.scrollTop = terminal.scrollHeight;
+},4500);
+
+// Scroll helper
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+
+<!-- ══ HONEYPOT TRACKER PANEL ══ -->
+<div id="hp-tracker">
+  <div class="hp-head">
+    <div class="hp-pulse"></div>
+    <div class="hp-title">🕵️ Visitor Being Tracked</div>
+    <button class="hp-minimize" onclick="toggleTracker()" id="hp-min-btn" title="Minimize">−</button>
+  </div>
+  <div class="hp-body">
+    <div class="hp-visitor">
+      <div class="hp-row"><span class="hp-lbl">Timestamp</span><span class="hp-val" id="hp-ts">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">IP Address</span><span class="hp-val red" id="hp-ip">Detecting...</span></div>
+      <div class="hp-row"><span class="hp-lbl">Browser</span><span class="hp-val" id="hp-browser">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">OS</span><span class="hp-val" id="hp-os">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">Screen</span><span class="hp-val" id="hp-screen">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">Timezone</span><span class="hp-val green" id="hp-tz">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">Language</span><span class="hp-val" id="hp-lang">—</span></div>
+      <div class="hp-row"><span class="hp-lbl">Time on Page</span><span class="hp-val red" id="hp-timer">0s</span></div>
+    </div>
+    <div class="hp-activity-title">
+      <span style="width:5px;height:5px;border-radius:50%;background:#f87171;display:inline-block;animation:hpBlink 1s infinite"></span>
+      Live Activity Log
+    </div>
+    <div class="hp-activity-list" id="hp-activity"></div>
+  </div>
+  <div class="hp-footer">
+    <a href="honeypot_dashboard.html" class="hp-to-dash">⬅ View Full Dashboard</a>
+    <span class="hp-count">Events: <span id="hp-ev-count">0</span></span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//   HONEYPOT VISITOR TRACKER — Records everything the visitor does
+// ══════════════════════════════════════════════════════════════
+
+const HP_KEY   = 'gf_threat_logs';
+const FAKE_KEY = 'fp_fake_logs';
+const arrivedAt = Date.now();
+let eventCount = 0;
+let timerInterval;
+
+// ── FINGERPRINT ──────────────────────────────────────────────
+function getBrowser() {
+  const ua = navigator.userAgent;
+  if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+  if (ua.includes('Edg')) return 'Edge';
+  if (ua.includes('OPR')) return 'Opera';
+  return 'Unknown';
+}
+function getOS() {
+  const ua = navigator.userAgent;
+  if (ua.includes('Android')) return 'Android';
+  if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
+  if (ua.includes('Windows')) return 'Windows';
+  if (ua.includes('Mac')) return 'macOS';
+  if (ua.includes('Linux')) return 'Linux';
+  return 'Unknown';
+}
+function nowStr() {
+  return new Date().toLocaleTimeString('en-IN', {hour12:false});
+}
+
+// ── UPDATE PANEL ─────────────────────────────────────────────
+function setField(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ── BUILD VISITOR CARD ────────────────────────────────────────
+(function initTracker() {
+  setField('hp-ts',     new Date().toLocaleString('en-IN'));
+  setField('hp-ip',     'localhost (127.0.0.1)');
+  setField('hp-browser', getBrowser() + ' ' + (navigator.userAgent.match(/Chrome\/(\d+)/)?.[1]||''));
+  setField('hp-os',     getOS());
+  setField('hp-screen', screen.width + '×' + screen.height);
+  setField('hp-tz',     Intl.DateTimeFormat().resolvedOptions().timeZone);
+  setField('hp-lang',   navigator.language);
+
+  // Timer
+  timerInterval = setInterval(() => {
+    const secs = Math.round((Date.now() - arrivedAt) / 1000);
+    setField('hp-timer', secs + 's');
+  }, 1000);
+})();
+
+// ── LOG ACTIVITY EVENT ────────────────────────────────────────
+function logActivity(icon, text, saveToStore) {
+  eventCount++;
+  setField('hp-ev-count', eventCount);
+
+  const list  = document.getElementById('hp-activity');
+  const item  = document.createElement('div');
+  item.className = 'hp-event';
+  item.innerHTML = `
+    <span class="hp-ev-icon">${icon}</span>
+    <span class="hp-ev-text">${text}</span>
+    <span class="hp-ev-time">${nowStr()}</span>`;
+  list.insertBefore(item, list.firstChild);
+  while (list.children.length > 30) list.removeChild(list.lastChild);
+
+  // Save to localStorage so dashboard can see it
+  if (saveToStore !== false) {
+    const entry = {
+      id:        Date.now(),
+      event:     'FAKE_PAGE_ACTIVITY',
+      activity:  text,
+      icon:      icon,
+      ts:        new Date().toLocaleString('en-IN'),
+      browser:   getBrowser(),
+      os:        getOS(),
+      screen:    screen.width + '×' + screen.height,
+      tz:        Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lang:      navigator.language,
+      page:      window.location.pathname,
+      ip:        '127.0.0.1 (localhost)',
+    };
+
+    // Save to fake page log store
+    try {
+      const fake = JSON.parse(localStorage.getItem(FAKE_KEY) || '[]');
+      fake.unshift(entry);
+      if (fake.length > 200) fake.pop();
+      localStorage.setItem(FAKE_KEY, JSON.stringify(fake));
+    } catch(e) {}
+
+    // Also save to main honeypot log store (dashboard reads this)
+    try {
+      const main = JSON.parse(localStorage.getItem(HP_KEY) || '[]');
+      main.unshift(entry);
+      if (main.length > 500) main.pop();
+      localStorage.setItem(HP_KEY, JSON.stringify(main));
+    } catch(e) {}
+  }
+}
+
+// ── TRACK PAGE VISIT ──────────────────────────────────────────
+logActivity('🌐', 'Visited fake-page.html — restricted server data');
+
+// ── TRACK SCROLL ─────────────────────────────────────────────
+let scrollDepths = new Set();
+window.addEventListener('scroll', () => {
+  const pct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+  const bucket = Math.floor(pct / 25) * 25;
+  if (!scrollDepths.has(bucket) && bucket > 0) {
+    scrollDepths.add(bucket);
+    logActivity('📜', `Scrolled to ${bucket}% of page`);
+  }
+});
+
+// ── TRACK SECTION VIEWS ───────────────────────────────────────
+const sectionNames = {
+  'sec-db':      '🗃️ Viewed DB Config — database credentials exposed',
+  'sec-api':     '🔑 Viewed API Keys — external service credentials',
+  'sec-access':  '🔐 Viewed Access Logs — session history',
+  'sec-users':   '👥 Viewed User Records — 3,247 farm accounts',
+  'sec-env':     '🌐 Viewed .env file — all secrets exposed',
+  'sec-backup':  '💾 Viewed Backup Status',
+  'sec-network': '📶 Viewed Network / Open Ports',
+  'sec-terminal':'💻 Viewed Live Terminal',
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && sectionNames[e.target.id]) {
+      logActivity('👁️', sectionNames[e.target.id]);
+      observer.unobserve(e.target); // only log first view
+    }
+  });
+}, { threshold: 0.3 });
+
+Object.keys(sectionNames).forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// ── TRACK SIDEBAR CLICKS ──────────────────────────────────────
+document.querySelectorAll('.dash-nav-item, .dash-sidebar a').forEach(btn => {
+  btn.addEventListener('click', () => {
+    logActivity('🖱️', `Clicked sidebar: "${btn.textContent.trim()}"`);
+  });
+});
+
+// ── TRACK TEXT SELECTION (data harvesting behaviour) ─────────────
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection().toString().trim();
+  if (sel.length > 8) {
+    logActivity('✂️', `Selected text: "${sel.slice(0,40)}${sel.length>40?'…':''}"`);
+  }
+});
+
+// ── TRACK COPY (Ctrl+C) ───────────────────────────────────────
+document.addEventListener('copy', () => {
+  const sel = window.getSelection().toString().trim();
+  if (sel) {
+    logActivity('📋', `Copied: "${sel.slice(0,50)}${sel.length>50?'…':''}"`);
+  }
+});
+
+// ── TRACK TIME MILESTONES ─────────────────────────────────────
+[15, 30, 60, 120, 300].forEach(secs => {
+  setTimeout(() => {
+    logActivity('⏱️', `Still on page after ${secs}s — deep investigation`);
+  }, secs * 1000);
+});
+
+// ── MINIMIZE / RESTORE ────────────────────────────────────────
+function toggleTracker() {
+  const panel = document.getElementById('hp-tracker');
+  const btn   = document.getElementById('hp-min-btn');
+  panel.classList.toggle('minimized');
+  btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+}
+
+// ── SAVE SESSION SUMMARY ON EXIT ──────────────────────────────
+window.addEventListener('beforeunload', () => {
+  const secs = Math.round((Date.now() - arrivedAt) / 1000);
+  logActivity('🚪', `Left page after ${secs}s — ${eventCount} events recorded`);
+});
+</script>
+<script src="js/honeypot.js"></script>
+</body>
+</html>
