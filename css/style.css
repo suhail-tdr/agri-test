@@ -685,8 +685,18 @@ a { color: inherit; text-decoration: none; }
   display: flex; flex-direction: column;
   position: fixed; top: 0; left: 0; height: 100vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125,206,141,0.35) transparent;
   z-index: 100;
   transition: transform 0.3s;
+}
+
+.dash-sidebar::-webkit-scrollbar { width: 8px; }
+.dash-sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+.dash-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(125,206,141,0.32);
+  border: 1px solid rgba(125,206,141,0.4);
+  border-radius: 8px;
 }
 
 .dash-sidebar-logo {

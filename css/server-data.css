@@ -58,17 +58,28 @@ canvas{display:block;width:100% !important}
 
 /* dark mode */
 .theme-toggle-rect{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   border:1px solid var(--border);
-  background:var(--bg-alt);
+  background:transparent;
   color:var(--text);
-  border-radius:8px;
-  padding:.4rem .8rem;
-  font-size:.78rem;
+  border-radius:4px;
+  padding:4px 10px;
+  font-size:.68rem;
   font-weight:600;
+  letter-spacing:1px;
   cursor:pointer;
+  box-shadow:none;
   transition:all .2s;
 }
-.theme-toggle-rect:hover{border-color:var(--green);color:var(--green)}
+.theme-toggle-rect:hover{
+  border-color:var(--green);
+  color:var(--green);
+  background:rgba(45,122,58,.08);
+}
+.theme-toggle-rect:active{background:rgba(45,122,58,.14)}
+.theme-toggle-rect:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(45,122,58,.22)}
 
 body.dark-mode{
   --bg:#0e1712;
@@ -108,5 +119,36 @@ body.dark-mode .dash-content{background:var(--bg)}
 body.dark-mode .fi{color:var(--text)}
 body.dark-mode .toggle-sl::before{background:#e5efe8}
 body.dark-mode #toast{background:#1b2a1f;color:#edf7ef}
+body.dark-mode .theme-toggle-rect{
+  border-color:#355243;
+  background:transparent;
+  color:#dff3e5;
+  box-shadow:none;
+}
+body.dark-mode .theme-toggle-rect:hover{
+  border-color:#7dce8d;
+  color:#8ce0a2;
+  background:rgba(74,222,128,.12);
+}
+
+#raw-feed,
+#hp-log-table,
+#sys-log-stream{
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+
+#raw-feed::-webkit-scrollbar,
+#hp-log-table::-webkit-scrollbar,
+#sys-log-stream::-webkit-scrollbar{width:8px; height:8px;}
+
+#raw-feed::-webkit-scrollbar-track,
+#hp-log-table::-webkit-scrollbar-track,
+#sys-log-stream::-webkit-scrollbar-track{background:rgba(45,122,58,0.06);}
+
+#raw-feed::-webkit-scrollbar-thumb,
+#hp-log-table::-webkit-scrollbar-thumb,
+#sys-log-stream::-webkit-scrollbar-thumb{background:rgba(45,122,58,0.28); border:1px solid rgba(45,122,58,0.35); border-radius:8px;}
+
 @media(max-width:900px){#menuBtn{display:flex !important}.dash-grid2,.dash-grid3{grid-template-columns:1fr !important}.db-head,.db-row,.bk-head,.bk-row{grid-template-columns:1fr 1fr}
 }

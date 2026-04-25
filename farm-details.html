@@ -501,6 +501,12 @@
           <tr><td><strong>Rice Seeds (Kuruvai)</strong></td><td>Seeds</td><td>22 kg</td><td>kg</td><td>5 kg</td><td>Apr 2025</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">OK</span></td><td>—</td></tr>
           <tr><td><strong>Drip Emitters (4 LPH)</strong></td><td>Equipment</td><td style="color:var(--red);font-weight:700">8 pcs</td><td>pcs</td><td>20 pcs</td><td>N/A</td><td><span class="tbadge tbadge-denied">Low Stock</span></td><td><a href="#" onclick="showToast('🛒 Reorder placed for Emitters')" style="color:var(--green);font-weight:600;font-size:0.78rem">Reorder</a></td></tr>
           <tr><td><strong>Neem Oil (Cold-pressed)</strong></td><td>Bio-pesticide</td><td>4.5 L</td><td>litres</td><td>2 L</td><td style="color:var(--amber);font-weight:600">Jan 2025 ⚠</td><td><span class="tbadge tbadge-attempt">Exp. Soon</span></td><td>—</td></tr>
+          <tr><td><strong>DAP Fertilizer (18:46:0)</strong></td><td>Fertilizer</td><td>46 kg</td><td>kg</td><td>25 kg</td><td>Nov 2026</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">OK</span></td><td>—</td></tr>
+          <tr><td><strong>Potash (Muriate, Granular)</strong></td><td>Fertilizer</td><td style="color:var(--red);font-weight:700">9 kg</td><td>kg</td><td>20 kg</td><td>Sep 2026</td><td><span class="tbadge tbadge-denied">Low Stock</span></td><td><a href="#" onclick="showToast('🛒 Reorder placed for Potash')" style="color:var(--green);font-weight:600;font-size:0.78rem">Reorder</a></td></tr>
+          <tr><td><strong>Yellow Sticky Traps</strong></td><td>Pest Control</td><td>64 pcs</td><td>pcs</td><td>30 pcs</td><td>N/A</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">OK</span></td><td>—</td></tr>
+          <tr><td><strong>Trichoderma Bio-fungicide</strong></td><td>Bio-input</td><td>1.1 kg</td><td>kg</td><td>1 kg</td><td style="color:var(--amber);font-weight:600">Feb 2025 ⚠</td><td><span class="tbadge tbadge-attempt">Exp. Soon</span></td><td>—</td></tr>
+          <tr><td><strong>Mulch Film (Black Silver)</strong></td><td>Equipment</td><td>12 rolls</td><td>rolls</td><td>6 rolls</td><td>N/A</td><td><span class="tbadge" style="background:var(--green-pale);color:var(--green)">OK</span></td><td>—</td></tr>
+          <tr><td><strong>Sprayer Nozzles (Cone Type)</strong></td><td>Equipment</td><td style="color:var(--red);font-weight:700">6 pcs</td><td>pcs</td><td>15 pcs</td><td>N/A</td><td><span class="tbadge tbadge-denied">Low Stock</span></td><td><a href="#" onclick="showToast('🛒 Reorder placed for Sprayer Nozzles')" style="color:var(--green);font-weight:600;font-size:0.78rem">Reorder</a></td></tr>
         </tbody>
       </table>
     </div>
@@ -614,8 +620,9 @@
           <span class="ai-chip" onclick="askAI('Best time to sell Turmeric?')">Turmeric market?</span>
         </div>
         <div style="display:flex;gap:0.5rem">
-          <input class="fi" type="text" id="ai-input" placeholder="Ask your farm question..." style="flex:1">
+          <input class="fi" type="text" id="ai-input" placeholder="Ask about any crop, field, pest, irrigation, weather, or prices..." style="flex:1">
           <button class="btn btn-primary" onclick="askAI()">Ask →</button>
+          <button class="btn btn-outline" onclick="clearAIChat()">Clear</button>
         </div>
       </div>
     </div>
@@ -1169,49 +1176,337 @@ function startIrrigation(){
 /* ══════════════════════════════════════════════════
    AI ADVISOR
 ══════════════════════════════════════════════════ */
-const AI_ANSWERS = {
-  shallot: 'Harvest Field 7 Shallots in <strong>28–32 days</strong> for best yield. Apply NPK 17:17:17 @ 80 kg/ha within 7 days — potassium is critically low (0.18 cmol/kg). Current moisture is dangerously low at 28%. Irrigate immediately. Expected yield: 12–14 t/ha.',
-  banana:  'Sigatoka leaf spot confirmed at 84% confidence. <strong>Act before Wednesday rain:</strong> 1) Spray Mancozeb 75% WP @ 2g/L, 2) Remove lower infected leaves, 3) Improve row drainage, 4) Avoid overhead irrigation for 5 days. Humid conditions post-rain will accelerate spread.',
-  irrigat: 'Yes — Field 3 (Coconut) is at <strong>34% soil moisture</strong>, well below the 50% threshold. NDVI stress confirms water deficit (0.41). Drip irrigation is scheduled for 06:00 AM tomorrow (45 min, ~600L). You can start it now using Irrigation Control.',
-  turmeric:'<strong>Hold Turmeric</strong> for 2–3 more weeks. Current price ₹14,200 is up ₹760 today. Market AI projects 8–12% further rise to ₹15,300–15,800 by December based on APMC data and seasonal demand. Storage conditions look good per your farm logs.',
+const AI_STATE = {
+  history: [],
+  lastSnapshot: null,
+  isResponding: false,
 };
-function getAIResponse(q) {
-  const lower = q.toLowerCase();
-  if (lower.includes('shallot') || lower.includes('f7')) return AI_ANSWERS.shallot;
-  if (lower.includes('banana') || lower.includes('sigatoka') || lower.includes('blight')) return AI_ANSWERS.banana;
-  if (lower.includes('irrigat') || lower.includes('water') || lower.includes('f3')) return AI_ANSWERS.irrigat;
-  if (lower.includes('turmeric') || lower.includes('market') || lower.includes('sell')) return AI_ANSWERS.turmeric;
-  return `Based on your current farm data (${SESSION.farmId}, ${SESSION.area} ha): health score is 87/100, 2 active disease alerts need attention, and Field 3 & 7 require urgent irrigation. Your AI analysis is running on 8,640 sensor readings collected today. Would you like specific advice on any crop or field, ${FIRST}?`;
+
+function getText(id, fallback='N/A') {
+  const el = document.getElementById(id);
+  if (!el || !el.textContent) return fallback;
+  return el.textContent.trim();
 }
+
+function extractNumber(text, fallback = null) {
+  if (!text || typeof text !== 'string') return fallback;
+  const match = text.replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : fallback;
+}
+
+function getLiveFarmSnapshot() {
+  const now = new Date();
+  const tempTxt = getText('ov-temp', '29.0°C');
+  const humTxt = getText('ov-hum', '68%');
+  const soilTxt = getText('ov-soil', '58%');
+  const f3Txt = getText('ss03', '34%');
+  const f7Txt = getText('ss10', '28%');
+  const windTxt = getText('ov-wind', '14 km/h');
+  const healthTxt = getText('ov-health', '87/100');
+  const usageTxt = getText('irr-usage', '4,820 L');
+  const pumpStatusTxt = getText('pump-status', 'IDLE');
+
+  return {
+    timestamp: now,
+    tempC: extractNumber(tempTxt, 29),
+    humidity: extractNumber(humTxt, 68),
+    soilAvg: extractNumber(soilTxt, 58),
+    field3Moisture: extractNumber(f3Txt, 34),
+    field7Moisture: extractNumber(f7Txt, 28),
+    wind: extractNumber(windTxt, 14),
+    healthScore: extractNumber(healthTxt, 87),
+    waterToday: extractNumber(usageTxt, 4820),
+    pumpStatus: pumpStatusTxt,
+    activeAlerts: 2,
+  };
+}
+
+function formatTime(d) {
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function updateAILiveStatus(snapshot) {
+  const statusEl = document.getElementById('ai-status');
+  const syncEl = document.getElementById('ai-last-sync');
+  const dotEl = document.getElementById('ai-status-dot');
+  if (statusEl) statusEl.textContent = `Live sensor sync active · Health ${snapshot.healthScore}/100`;
+  if (syncEl) syncEl.textContent = formatTime(snapshot.timestamp);
+  if (dotEl) dotEl.style.color = snapshot.field3Moisture < 40 || snapshot.field7Moisture < 35 ? 'var(--amber)' : 'var(--green)';
+}
+
+function classifyIntent(question) {
+  const q = question.toLowerCase();
+  if (/(hello|hi|hey|good morning|good evening)/.test(q)) return 'greeting';
+  if (/(urea|mop|npk|dap|mancozeb|chlorpyriphos|neem oil|potash|sticky trap|trichoderma|sprayer nozzle|mulch|seeds|fertilizer|fertiliser|item|stock)/.test(q)) return 'item';
+  if (/(irrigat|water|drip|moisture|pump|field 3|f3|field 7|f7)/.test(q)) return 'irrigation';
+  if (/(disease|pest|blight|sigatoka|fung|beetle|leaf)/.test(q)) return 'disease';
+  if (/(harvest|yield|when to harvest|ready)/.test(q)) return 'harvest';
+  if (/(price|market|sell|mandi|profit|rate|what is the .* rate|cost)/.test(q)) return 'market';
+  if (/(weather|rain|wind|humid|temperature|temp)/.test(q)) return 'weather';
+  if (/(soil|npk|ph|fertili|nutrient|potassium|nitrogen)/.test(q)) return 'soil';
+  if (/(summary|status|overview|report|what now)/.test(q)) return 'summary';
+  return 'general';
+}
+
+function estimateConfidence(intent, question, snapshot) {
+  const base = {
+    greeting: 0.98,
+    irrigation: 0.94,
+    disease: 0.89,
+    harvest: 0.86,
+    market: 0.84,
+    weather: 0.88,
+    soil: 0.87,
+    summary: 0.92,
+    general: 0.72,
+  }[intent] || 0.72;
+
+  let boost = 0;
+  if (/(f3|f7|field 3|field 7|banana|shallot|turmeric|rice|coconut)/i.test(question)) boost += 0.03;
+  if (snapshot && snapshot.tempC != null && snapshot.soilAvg != null) boost += 0.02;
+  return Math.min(0.99, base + boost);
+}
+
+function buildIrrigationAdvice(snapshot, qLower) {
+  const f3 = snapshot.field3Moisture;
+  const f7 = snapshot.field7Moisture;
+  const criticalF3 = f3 < 40;
+  const criticalF7 = f7 < 35;
+
+  if (qLower.includes('f7') || qLower.includes('shallot')) {
+    return criticalF7
+      ? `Field 7 is critical at ${f7}%. Start irrigation now for 25-30 min and recheck after 20 min. Keep soil above 42% during bulb stage.`
+      : `Field 7 moisture is ${f7}%, which is acceptable now. Recheck in 4 hours and irrigate if it drops below 40%.`;
+  }
+  if (qLower.includes('f3') || qLower.includes('coconut')) {
+    return criticalF3
+      ? `Field 3 is low at ${f3}%. Run drip irrigation now for 35-45 min. This should push it toward the 48-52% safe band.`
+      : `Field 3 is at ${f3}%. No emergency, but schedule the next cycle before morning heat to keep moisture stable.`;
+  }
+
+  if (criticalF3 || criticalF7) {
+    return `Immediate irrigation priority: F3 ${f3}% and F7 ${f7}%. Start F7 first (higher crop risk), then F3. Pump state: ${snapshot.pumpStatus}.`;
+  }
+  return `Current average moisture is ${snapshot.soilAvg}%. Maintain routine irrigation and trigger auto-run if any zone falls below 40%.`;
+}
+
+function buildItemAdvice(question) {
+  const q = question.toLowerCase();
+  const items = [
+    { keys: ['urea'], name: 'Urea (46%)', stock: '18 kg', action: 'Reorder soon', use: 'Good for topdressing rice and leafy crops.' },
+    { keys: ['mop', 'potash'], name: 'Potash (Muriate, Granular)', stock: '9 kg', action: 'Low stock', use: 'Useful for bulb filling, fruit quality, and potassium support.' },
+    { keys: ['npk', '17:17:17'], name: 'NPK 17:17:17', stock: '85 kg', action: 'Available', use: 'Balanced fertilizer for general crop feeding.' },
+    { keys: ['mancozeb', 'fungicide'], name: 'Mancozeb 75% WP', stock: '2.4 kg', action: 'Use before rain', use: 'Helps protect banana and vegetable crops from fungal disease.' },
+    { keys: ['chlorpyriphos', 'insecticide'], name: 'Chlorpyriphos 20 EC', stock: '3.8 L', action: 'Available', use: 'Used for insect control when pest pressure rises.' },
+    { keys: ['neem oil'], name: 'Neem Oil (Cold-pressed)', stock: '4.5 L', action: 'Expiring soon', use: 'A mild bio-pesticide for early pest management.' },
+    { keys: ['sticky trap', 'traps'], name: 'Yellow Sticky Traps', stock: '64 pcs', action: 'Enough stock', use: 'Helps monitor and reduce flying pests.' },
+    { keys: ['trichoderma'], name: 'Trichoderma Bio-fungicide', stock: '1.1 kg', action: 'Use soon', use: 'Supports root health and disease suppression.' },
+    { keys: ['sprayer nozzle', 'nozzles'], name: 'Sprayer Nozzles (Cone Type)', stock: '6 pcs', action: 'Low stock', use: 'Needed for spraying and regular field treatment.' },
+    { keys: ['rice seed', 'seeds'], name: 'Rice Seeds (Kuruvai)', stock: '22 kg', action: 'Available', use: 'Good for next sowing or gap filling.' },
+  ];
+
+  const match = items.find(item => item.keys.some(key => q.includes(key)));
+  if (match) {
+    return `Item: ${match.name}. Stock: ${match.stock}. Status: ${match.action}.\nUse: ${match.use}\nIf you want, I can also tell you whether to reorder it now or hold for later.`;
+  }
+
+  return `I can help with farm items like urea, potash, NPK, mancozeb, neem oil, traps, seeds, and sprayer parts.\nTry asking: "How much urea do we have?" or "Should I reorder potash now?"`;
+}
+
+function buildMarketAdvice(question) {
+  const q = question.toLowerCase();
+  const market = {
+    rice: '₹2,180/qtl',
+    turmeric: '₹14,200/qtl',
+    banana: '₹3,400/qtl',
+    coconut: '₹18.50/unit',
+    onion: '₹4,200/qtl',
+    rubber: '₹198/kg',
+    amaranthus: '₹1,080/qtl',
+  };
+
+  if (q.includes('rice')) return `Rice rate is ${market.rice}. Sell part now if you need cash, and keep good stock for a better price later.`;
+  if (q.includes('turmeric')) return `Turmeric rate is ${market.turmeric}. It is holding well, so stagger selling instead of selling all at once.`;
+  if (q.includes('banana')) return `Banana rate is ${market.banana}. Sell when the bunch is ready and transport is available.`;
+  if (q.includes('coconut')) return `Coconut rate is ${market.coconut}. Small lot selling is usually safer for steady income.`;
+  if (q.includes('onion') || q.includes('shallot')) return `Small onion / shallot rate is ${market.onion}. Check your local trader before selling in bulk.`;
+  if (q.includes('rubber')) return `Rubber rate is ${market.rubber}. Good to sell when tapping output is steady.`;
+  if (q.includes('amaranthus') || q.includes('leafy')) return `Leafy veg rate is ${market.amaranthus}. Fresh harvest and quick sale usually get the best return.`;
+
+  return `I can answer market questions for rice, turmeric, banana, coconut, onion, rubber, and leafy crops.\nTry asking: "What is the rice rate?" or "Best time to sell turmeric?"`;
+}
+
+function buildAIResponse(question, snapshot) {
+  const intent = classifyIntent(question);
+  const qLower = question.toLowerCase();
+  const confidence = estimateConfidence(intent, question, snapshot);
+
+  if (intent === 'greeting') {
+    return {
+      text: `Hello ${FIRST}. I can help with your farm in simple words.\nCurrent status: health ${snapshot.healthScore}/100, moisture ${snapshot.soilAvg}%, alerts ${snapshot.activeAlerts}.\nAsk me about irrigation, diseases, harvest, items, or market rates.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'item') {
+    return {
+      text: buildItemAdvice(question),
+      confidence,
+    };
+  }
+
+  if (intent === 'market') {
+    return {
+      text: buildMarketAdvice(question),
+      confidence,
+    };
+  }
+
+  if (intent === 'irrigation') {
+    return {
+      text: `${buildIrrigationAdvice(snapshot, qLower)}\nLive values: avg moisture ${snapshot.soilAvg}%, F3 ${snapshot.field3Moisture}%, F7 ${snapshot.field7Moisture}%, water used today ${Math.round(snapshot.waterToday)} L.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'disease') {
+    return {
+      text: `Disease risk is higher when humidity stays high. Live humidity is ${snapshot.humidity}% and temperature is ${snapshot.tempC}°C.\nFor Banana (F6): spray before rain, remove infected leaves, and avoid overhead irrigation for a few days.\nFor Coconut (F3): keep traps and field sanitation active.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'harvest') {
+    return {
+      text: `Harvest guidance: Shallots (F7) are on track for about 28-32 days if moisture is kept above 42%.\nLeafy vegetables should be harvested before heavy rain when possible.\nIf you want, I can give a simple field-wise harvest plan.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'weather') {
+    const rainRisk = snapshot.humidity > 75 ? 'high' : snapshot.humidity > 65 ? 'moderate' : 'low';
+    return {
+      text: `Weather advice: temp ${snapshot.tempC}°C, humidity ${snapshot.humidity}%, wind ${snapshot.wind} km/h.\nRain and fungus risk is ${rainRisk}. Spray in low-wind hours and avoid watering just before rain.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'soil') {
+    return {
+      text: `Soil advice: first fix moisture in F3 and F7, then add the right fertilizer.\nAction order: 1) water recovery, 2) targeted NPK, 3) check again tomorrow.\nAsk me for a simple soil plan if you want field-wise steps.`,
+      confidence,
+    };
+  }
+
+  if (intent === 'summary') {
+    return {
+      text: `Live farm summary: health ${snapshot.healthScore}/100, moisture ${snapshot.soilAvg}%, F3 ${snapshot.field3Moisture}%, F7 ${snapshot.field7Moisture}%, water today ${Math.round(snapshot.waterToday)} L, pump ${snapshot.pumpStatus}.\nTop priority now: protect weak plots and bring low moisture back up.`,
+      confidence,
+    };
+  }
+
+  return {
+    text: `I can help with simple farm questions. Try asking about a crop, field, item, irrigation, or market rate.\nExample: "What is the urea stock?" or "What is the turmeric rate?"\nLive baseline: health ${snapshot.healthScore}/100, moisture ${snapshot.soilAvg}%, humidity ${snapshot.humidity}%.`,
+    confidence,
+  };
+}
+
+function addChatMessage(role, text) {
+  const chat = document.getElementById('ai-chat');
+  const msg = document.createElement('div');
+  msg.className = `ai-msg ${role}`;
+  msg.style.whiteSpace = 'pre-line';
+  msg.textContent = role === 'bot' ? `🤖 ${text}` : text;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return msg;
+}
+
+function streamBotText(container, fullText, done) {
+  container.textContent = '🤖 ';
+  container.style.whiteSpace = 'pre-line';
+  let i = 0;
+  const speed = 16;
+  const timer = setInterval(() => {
+    i += 3;
+    container.textContent = '🤖 ' + fullText.slice(0, i);
+    const chat = document.getElementById('ai-chat');
+    if (chat) chat.scrollTop = chat.scrollHeight;
+    if (i >= fullText.length) {
+      clearInterval(timer);
+      if (done) done();
+    }
+  }, speed);
+}
+
+function clearAIChat() {
+  const chat = document.getElementById('ai-chat');
+  if (!chat) return;
+  chat.innerHTML = `<div class="ai-msg bot" id="ai-greeting">Hello ${FIRST} 👋 I'm your Agri Cloud AI Advisor. Ask me anything about your farm — crop health, irrigation, pest management, or market timing.</div>`;
+  AI_STATE.history = [];
+  showToast('🧹 AI chat cleared');
+}
+
 function askAI(preset) {
   const input = document.getElementById('ai-input');
-  const q = preset || input.value.trim();
-  if (!q) return;
-  const chat = document.getElementById('ai-chat');
-  // User message
-  const userDiv = document.createElement('div');
-  userDiv.className = 'ai-msg user';
-  userDiv.textContent = q;
-  chat.appendChild(userDiv);
+  const q = (preset || input.value || '').trim();
+  if (!q || AI_STATE.isResponding) return;
+
+  AI_STATE.isResponding = true;
+  addChatMessage('user', q);
   input.value = '';
-  // Typing indicator
+
+  const chat = document.getElementById('ai-chat');
   const typing = document.createElement('div');
   typing.className = 'ai-msg bot ai-typing';
-  typing.textContent = 'AI is analysing';
+  typing.textContent = 'AI analysing live sensor feed.';
   chat.appendChild(typing);
   chat.scrollTop = chat.scrollHeight;
+
+  let dots = 0;
+  const dotsTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    typing.textContent = 'AI analysing live sensor feed' + '.'.repeat(dots);
+  }, 350);
+
   setTimeout(() => {
-    chat.removeChild(typing);
+    clearInterval(dotsTimer);
+    if (typing.parentNode) typing.parentNode.removeChild(typing);
+
+    const snapshot = getLiveFarmSnapshot();
+    AI_STATE.lastSnapshot = snapshot;
+    updateAILiveStatus(snapshot);
+
+    const result = buildAIResponse(q, snapshot);
     const botDiv = document.createElement('div');
     botDiv.className = 'ai-msg bot';
-    botDiv.innerHTML = '🤖 ' + getAIResponse(q);
     chat.appendChild(botDiv);
-    chat.scrollTop = chat.scrollHeight;
-  }, 1200);
+
+    streamBotText(botDiv, result.text, () => {
+      AI_STATE.history.push({
+        question: q,
+        answer: result.text,
+        confidence: result.confidence,
+        at: snapshot.timestamp.toISOString(),
+      });
+      if (AI_STATE.history.length > 20) AI_STATE.history.shift();
+      AI_STATE.isResponding = false;
+    });
+  }, 900);
 }
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement.id === 'ai-input') askAI();
+  if (e.key === 'Enter' && document.activeElement.id === 'ai-input' && !e.shiftKey) {
+    e.preventDefault();
+    askAI();
+  }
 });
+
+setInterval(() => {
+  const snapshot = getLiveFarmSnapshot();
+  AI_STATE.lastSnapshot = snapshot;
+  updateAILiveStatus(snapshot);
+}, 4000);
 
 /* ══════════════════════════════════════════════════
    MOBILE MENU
