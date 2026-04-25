@@ -179,7 +179,7 @@ body.dark-mode #toast{background:#1b2a1f;color:#edf7ef}
   <div class="dash-stats">
     <div class="dstat"><div class="dstat-label">Server Uptime</div><div class="dstat-num" style="color:var(--green)">12d 8h</div><div class="dstat-sub">Since Nov 10 reboot</div><div class="dstat-icon">🖥️</div></div>
     <div class="dstat amber"><div class="dstat-label">CPU Load</div><div class="dstat-num" id="cpu-val">34%</div><div class="dstat-sub">4 cores · avg 1.4 GHz</div><div class="dstat-icon">⚡</div></div>
-    <div class="dstat"><div class="dstat-label">RAM Used</div><div class="dstat-num" id="ram-val">2.1 / 16 GB</div><div class="dstat-sub" id="ram-sub">13% used</div><div class="dstat-icon">💾</div></div>
+    <div class="dstat"><div class="dstat-label">RAM Used</div><div class="dstat-num" id="ram-val">10.7 / 16 GB</div><div class="dstat-sub" id="ram-sub">67% used</div><div class="dstat-icon">💾</div></div>
     <div class="dstat blue"><div class="dstat-label">Data Points Today</div><div class="dstat-num" id="dp-today">8,640</div><div class="dstat-sub">12 sensors × 720</div><div class="dstat-icon">📊</div></div>
   </div>
   <div class="dash-grid2">
@@ -187,7 +187,7 @@ body.dark-mode #toast{background:#1b2a1f;color:#edf7ef}
       <div class="dash-card-head"><h3>⚡ Resource Usage</h3><span class="tag-g">● All Healthy</span></div>
       <div class="dash-card-body">
         <div class="prog-row"><div class="prog-label"><span>CPU</span><span id="cpu-lbl" style="color:var(--green)">34%</span></div><div class="prog-track"><div class="prog-fill" id="cpu-bar" style="width:34%;background:var(--green)"></div></div></div>
-        <div class="prog-row"><div class="prog-label"><span>RAM</span><span id="ram-lbl" style="color:var(--green)">13% — 2.1 / 16 GB</span></div><div class="prog-track"><div class="prog-fill" id="ram-bar" style="width:13%;background:var(--green)"></div></div></div>
+        <div class="prog-row"><div class="prog-label"><span>RAM</span><span id="ram-lbl" style="color:var(--amber)">67% — 10.7 / 16 GB</span></div><div class="prog-track"><div class="prog-fill" id="ram-bar" style="width:67%;background:var(--amber)"></div></div></div>
         <div class="prog-row"><div class="prog-label"><span>Disk — SSD RAID-1</span><span style="color:var(--amber)">61% — 244 / 400 GB</span></div><div class="prog-track"><div class="prog-fill" style="width:61%;background:var(--amber)"></div></div></div>
         <div class="prog-row"><div class="prog-label"><span>Network I/O</span><span id="net-lbl" style="color:var(--green)">18%</span></div><div class="prog-track"><div class="prog-fill" id="net-bar" style="width:18%;background:var(--green)"></div></div></div>
         <div class="prog-row"><div class="prog-label"><span>DB Connections</span><span style="color:var(--green)">12 / 100</span></div><div class="prog-track"><div class="prog-fill" style="width:12%;background:var(--green)"></div></div></div>
@@ -664,7 +664,7 @@ setInterval(() => {
   const bar = document.getElementById("cpu-bar");
   if (bar) { bar.style.width=cpu+"%"; bar.style.background=cpu>70?"var(--red)":cpu>50?"var(--amber)":"var(--green)"; }
 
-  const ramPct = Math.max(12, Math.min(30, Math.round(rnd(13,6))));
+  const ramPct = Math.max(58, Math.min(82, Math.round(rnd(67,14))));
   const ramUsed = (16 * (ramPct / 100)).toFixed(1);
   u("ram-val", ramUsed + " / 16 GB");
   u("ram-sub", ramPct + "% used");
