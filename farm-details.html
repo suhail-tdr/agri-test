@@ -7,154 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
-<style>
-/* ── SECTION SYSTEM ──────────────────────────────────── */
-.page-section { display:none; animation:secFadeIn 0.35s ease; }
-.page-section.active { display:block; }
-@keyframes secFadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-/* ── UTILITY TAGS ────────────────────────────────────── */
-.tag-g { background:var(--green-pale);color:var(--green);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
-.tag-a { background:var(--amber-light);color:var(--amber);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
-.tag-r { background:var(--red-light);color:var(--red);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
-.tag-b { background:#e0f2fe;color:var(--blue);padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700; }
-
-/* ── FORM INPUTS ─────────────────────────────────────── */
-.fi { width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.9rem;color:var(--text);outline:none;transition:all 0.2s;background:white; }
-.fi:focus { border-color:var(--green);box-shadow:0 0 0 3px rgba(45,122,58,.1); }
-.fl { display:block;font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:0.4rem; }
-.fg { margin-bottom:1.1rem; }
-.btn-sm { padding:0.45rem 1.1rem;font-size:0.82rem;border-radius:7px; }
-
-/* ── PROGRESS BARS ───────────────────────────────────── */
-.prog-row { margin-bottom:0.85rem; }
-.prog-label { display:flex;justify-content:space-between;font-size:0.82rem;font-weight:600;margin-bottom:4px; }
-.prog-track { height:8px;background:var(--border);border-radius:4px;overflow:hidden; }
-.prog-fill { height:100%;border-radius:4px;transition:width 1s cubic-bezier(.22,1,.36,1); }
-
-/* ── SECTION HEADER ──────────────────────────────────── */
-.sec-h { font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:0.25rem; }
-.sec-s { color:var(--text-muted);font-size:0.88rem;margin-bottom:1.75rem; }
-
-/* ── TOGGLE SWITCH ───────────────────────────────────── */
-.toggle { position:relative;display:inline-block;width:44px;height:24px; }
-.toggle input { opacity:0;width:0;height:0; }
-.toggle-sl { position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:24px;transition:0.3s; }
-.toggle-sl::before { content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,.2); }
-.toggle input:checked + .toggle-sl { background:var(--green); }
-.toggle input:checked + .toggle-sl::before { transform:translateX(20px); }
-
-/* ── CANVAS CHART ────────────────────────────────────── */
-.canvas-wrap { position:relative;width:100%;background:var(--bg-alt);border-radius:10px;overflow:hidden; }
-canvas { display:block;width:100% !important; }
-
-/* ── SATELLITE MAP ───────────────────────────────────── */
-.sat-map { height:220px;border-radius:10px;background:linear-gradient(135deg,#0a2e1a,#1a4d2a 35%,#2a7a3a 55%,#1a5a28 80%,#0d3520);position:relative;overflow:hidden; }
-.sat-map::after { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 42% 32% at 28% 52%,rgba(45,204,112,.5) 0%,transparent 58%),radial-gradient(ellipse 26% 26% at 66% 34%,rgba(245,166,35,.38) 0%,transparent 54%),radial-gradient(ellipse 22% 22% at 76% 72%,rgba(231,76,60,.28) 0%,transparent 52%); }
-.sat-lbl { position:absolute;bottom:10px;right:12px;z-index:1;font-size:0.7rem;color:rgba(255,255,255,.6); }
-.sat-badge { position:absolute;top:12px;left:12px;z-index:1;background:rgba(0,0,0,.5);color:#7dce8d;font-size:0.65rem;padding:3px 10px;border-radius:20px;backdrop-filter:blur(4px); }
-.ndvi-legend { display:flex;gap:1rem;flex-wrap:wrap;margin:0.75rem 0;font-size:0.75rem; }
-.ndvi-dot { width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px; }
-
-/* ── AI CHAT ─────────────────────────────────────────── */
-.ai-chat { background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;padding:1rem;min-height:160px;max-height:260px;overflow-y:auto;font-size:0.85rem;line-height:1.7;margin-bottom:0.75rem; }
-.ai-msg  { margin-bottom:0.75rem;padding:0.6rem 0.85rem;border-radius:8px; }
-.ai-msg.bot  { background:white;border:1px solid var(--border); }
-.ai-msg.user { background:var(--green-pale);border:1px solid var(--border);text-align:right; }
-.ai-typing::after { content:'●●●';animation:typing 1.2s step-end infinite; font-size:0.7rem;color:var(--text-muted); }
-@keyframes typing { 0%{content:'●  '} 33%{content:'● ●'} 66%{content:'●●●'} }
-.ai-chips { display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem; }
-.ai-chip { background:white;border:1px solid var(--border);border-radius:20px;padding:0.3rem 0.75rem;font-size:0.75rem;cursor:pointer;transition:all 0.2s; }
-.ai-chip:hover { background:var(--green-pale);border-color:var(--green);color:var(--green); }
-
-/* ── IRRIGATION ZONE CARDS ───────────────────────────── */
-.zone-card { background:white;border:1px solid var(--border);border-radius:10px;padding:1.1rem;position:relative;transition:box-shadow 0.2s; }
-.zone-card:hover { box-shadow:var(--shadow); }
-.zone-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem; }
-.zone-name { font-weight:700;font-size:0.9rem; }
-.zone-moisture { font-family:'DM Serif Display',serif;font-size:1.6rem;font-weight:700; }
-.zone-status { font-size:0.72rem;color:var(--text-muted);margin-top:2px; }
-.zone-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.25rem; }
-
-/* ── MARKET TICKER LIVE ──────────────────────────────── */
-.live-dot { width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;animation:blink 1.5s infinite;box-shadow:0 0 6px rgba(34,197,94,0.5); }
-@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
-
-/* ── ALERT TOAST ─────────────────────────────────────── */
-#toast { position:fixed;bottom:2rem;right:2rem;background:var(--bg-dark);color:white;padding:0.85rem 1.4rem;border-radius:10px;font-size:0.85rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(.22,1,.36,1);z-index:999;max-width:300px;border-left:3px solid var(--green); }
-#toast.show { transform:translateY(0);opacity:1; }
-
-/* ── SETTINGS ────────────────────────────────────────── */
-.settings-section { margin-bottom:2rem; }
-.settings-section h4 { font-size:0.9rem;font-weight:700;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); }
-.settings-item { display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--border); }
-.settings-item:last-child { border-bottom:none; }
-.sitem-label { font-size:0.88rem;font-weight:600; }
-.sitem-sub { font-size:0.75rem;color:var(--text-muted); }
-
-/* ── DARK MODE ─────────────────────────────────────── */
-.theme-toggle {
-  border:1px solid var(--border);
-  background:var(--bg-alt);
-  color:var(--text);
-  border-radius:8px;
-  padding:0.4rem 0.8rem;
-  font-size:0.78rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:all 0.2s;
-}
-.theme-toggle:hover { border-color:var(--green); color:var(--green); }
-
-body.dark-mode {
-  --bg:#0e1712;
-  --bg-alt:#17241c;
-  --bg-dark:#07100b;
-  --bg-dark2:#101c15;
-  --green-pale:#173425;
-  --text:#e8f2eb;
-  --text-muted:#a7b9ab;
-  --text-light:#8fa294;
-  --amber-light:#3a2a12;
-  --red-light:#3a1e22;
-  --border:#2b3f33;
-  --shadow:0 8px 30px rgba(0,0,0,0.45);
-  --shadow-lg:0 20px 60px rgba(0,0,0,0.55);
-}
-
-body.dark-mode .dash-card,
-body.dark-mode .dstat,
-body.dark-mode .zone-card,
-body.dark-mode .ai-msg.bot,
-body.dark-mode .ai-chip,
-body.dark-mode .fi,
-body.dark-mode .market-table,
-body.dark-mode .threat-table,
-body.dark-mode .weather-card,
-body.dark-mode .weather-alert-box {
-  background:#152118;
-}
-
-body.dark-mode .dash-topbar,
-body.dark-mode .dash-sidebar,
-body.dark-mode .dash-main,
-body.dark-mode .dash-content {
-  background:var(--bg);
-}
-
-body.dark-mode .fi { color:var(--text); }
-body.dark-mode .toggle-sl::before { background:#e5efe8; }
-body.dark-mode #toast { background:#1b2a1f; color:#edf7ef; }
-body.dark-mode .sat-badge { background:rgba(0,0,0,.6); }
-
-/* ── RESPONSIVE ──────────────────────────────────────── */
-@media(max-width:900px){
-  #menuBtn { display:flex !important; }
-  .dash-grid2,.dash-grid3 { grid-template-columns:1fr !important; }
-  .zone-grid { grid-template-columns:1fr 1fr; }
-}
-@media(max-width:500px){ .zone-grid { grid-template-columns:1fr; } }
-</style>
+<link rel="stylesheet" href="css/farm-details.css">
 </head>
 <body>
 <div class="dash-layout">
@@ -659,33 +512,33 @@ body.dark-mode .sat-badge { background:rgba(0,0,0,.6); }
 ════════════════════════════════════════ -->
 <div id="sec-market" class="page-section">
   <div class="sec-h">Market Intelligence</div>
-  <div class="sec-s"><span class="live-dot"></span> Live Kerala mandi prices — rice, coconut, turmeric, banana and more · refreshed every 15 minutes</div>
+  <div class="sec-s"><span class="live-dot"></span> Live Kerala Mandi prices — refreshed every 15 minutes</div>
   <div class="dash-stats">
-    <div class="dstat"><div class="dstat-label">Rice (Kuruvai)</div><div class="dstat-num" style="color:var(--green)">₹2,240</div><div class="dstat-sub">▲ ₹60 today</div><div class="dstat-icon">🌾</div></div>
-    <div class="dstat"><div class="dstat-label">Coconut</div><div class="dstat-num" style="color:var(--green)">₹19.25</div><div class="dstat-sub">▲ ₹0.75 today</div><div class="dstat-icon">🥥</div></div>
-    <div class="dstat amber"><div class="dstat-label">Banana (Nendran)</div><div class="dstat-num">₹3,180</div><div class="dstat-sub">▼ ₹68 today</div><div class="dstat-icon">🍌</div></div>
-    <div class="dstat blue"><div class="dstat-label">Turmeric</div><div class="dstat-num">₹14,550</div><div class="dstat-sub">▲ ₹350 today</div><div class="dstat-icon">🌿</div></div>
+    <div class="dstat"><div class="dstat-label">Rice (Kuruvai)</div><div class="dstat-num" style="color:var(--green)">₹2,180</div><div class="dstat-sub">▲ ₹49 today</div><div class="dstat-icon">🌾</div></div>
+    <div class="dstat"><div class="dstat-label">Turmeric</div><div class="dstat-num" style="color:var(--green)">₹14,200</div><div class="dstat-sub">▲ ₹760 today</div><div class="dstat-icon">🌿</div></div>
+    <div class="dstat amber"><div class="dstat-label">Banana (Nendran)</div><div class="dstat-num">₹3,400</div><div class="dstat-sub">▼ ₹48 today</div><div class="dstat-icon">🍌</div></div>
+    <div class="dstat blue"><div class="dstat-label">Coconut</div><div class="dstat-num">₹18.50</div><div class="dstat-sub">▲ ₹0.50 today</div><div class="dstat-icon">🥥</div></div>
   </div>
   <div class="dash-grid2">
     <div class="dash-card">
-      <div class="dash-card-head"><h3>📊 Regional Market Watch</h3><span class="tag-b">Updated 15 min ago</span></div>
+      <div class="dash-card-head"><h3>📊 All Commodity Prices</h3></div>
       <div class="dash-card-body" style="padding:0">
         <table class="market-table">
-          <thead><tr><th>Crop</th><th>Variety</th><th>Price</th><th>Change</th><th>Mandi</th><th>MSP</th></tr></thead>
+          <thead><tr><th>Commodity</th><th>Variety</th><th>Price</th><th>Change</th><th>Mandi</th><th>MSP</th></tr></thead>
           <tbody>
-            <tr><td><strong>🌾 Rice (Paddy)</strong></td><td style="color:var(--text-muted)">Kuruvai</td><td><strong>₹2,240/qtl</strong></td><td class="price-up">▲ ₹60</td><td style="color:var(--text-muted)">Tiruvalla</td><td style="color:var(--text-muted)">₹2,183</td></tr>
-            <tr><td><strong>🥥 Coconut</strong></td><td style="color:var(--text-muted)">West Coast Tall</td><td><strong>₹19.25/unit</strong></td><td class="price-up">▲ ₹0.75</td><td style="color:var(--text-muted)">Haripad</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🌿 Turmeric</strong></td><td style="color:var(--text-muted)">Erode Finger</td><td><strong>₹14,550/qtl</strong></td><td class="price-up">▲ ₹350</td><td style="color:var(--text-muted)">Erode</td><td style="color:var(--text-muted)">₹9,000</td></tr>
-            <tr><td><strong>🍌 Banana</strong></td><td style="color:var(--text-muted)">Nendran</td><td><strong>₹3,180/qtl</strong></td><td class="price-down">▼ ₹68</td><td style="color:var(--text-muted)">Ernakulam</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🧅 Small Onion</strong></td><td style="color:var(--text-muted)">Bangalore Rose</td><td><strong>₹4,120/qtl</strong></td><td class="price-down">▼ ₹40</td><td style="color:var(--text-muted)">Kozhikode</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🌳 Rubber</strong></td><td style="color:var(--text-muted)">RSS-4</td><td><strong>₹201/kg</strong></td><td class="price-up">▲ ₹3</td><td style="color:var(--text-muted)">Kottayam</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🥬 Amaranthus</strong></td><td style="color:var(--text-muted)">Mixed Leafy</td><td><strong>₹1,120/qtl</strong></td><td class="price-up">▲ ₹40</td><td style="color:var(--text-muted)">Kochi</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌾 Rice (Paddy)</strong></td><td style="color:var(--text-muted)">Kuruvai</td><td><strong>₹2,180/qtl</strong></td><td class="price-up">▲ ₹49</td><td style="color:var(--text-muted)">Tiruvalla</td><td style="color:var(--text-muted)">₹2,183</td></tr>
+            <tr><td><strong>🥥 Coconut</strong></td><td style="color:var(--text-muted)">West Coast Tall</td><td><strong>₹18.50/unit</strong></td><td class="price-up">▲ ₹0.50</td><td style="color:var(--text-muted)">Haripad</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌿 Turmeric</strong></td><td style="color:var(--text-muted)">Erode Finger</td><td><strong>₹14,200/qtl</strong></td><td class="price-up">▲ ₹760</td><td style="color:var(--text-muted)">Erode</td><td style="color:var(--text-muted)">₹9,000</td></tr>
+            <tr><td><strong>🍌 Banana</strong></td><td style="color:var(--text-muted)">Nendran</td><td><strong>₹3,400/qtl</strong></td><td class="price-down">▼ ₹48</td><td style="color:var(--text-muted)">Ernakulam</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🧅 Small Onion</strong></td><td style="color:var(--text-muted)">Bangalore Rose</td><td><strong>₹4,200/qtl</strong></td><td class="price-down">▼ ₹25</td><td style="color:var(--text-muted)">Kozhikode</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌳 Rubber</strong></td><td style="color:var(--text-muted)">RSS-4</td><td><strong>₹198/kg</strong></td><td class="price-down">▼ ₹3</td><td style="color:var(--text-muted)">Kottayam</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🥬 Amaranthus</strong></td><td style="color:var(--text-muted)">Mixed Leafy</td><td><strong>₹1,080/qtl</strong></td><td class="price-up">▲ ₹32</td><td style="color:var(--text-muted)">Kochi</td><td style="color:var(--text-muted)">—</td></tr>
           </tbody>
         </table>
       </div>
     </div>
     <div class="dash-card">
-      <div class="dash-card-head"><h3>📈 Price Trends — 30 Days</h3><span class="tag-g">Rice + Turmeric trend</span></div>
+      <div class="dash-card-head"><h3>📈 Price Trends — 30 Days</h3></div>
       <div class="dash-card-body"><div class="canvas-wrap"><canvas id="market-chart" height="200"></canvas></div></div>
     </div>
   </div>

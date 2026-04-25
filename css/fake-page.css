@@ -1,0 +1,43 @@
+body { background:#0a150c; }
+.config-block {
+  background:#050c06; border:1px solid rgba(45,122,58,0.2);
+  border-radius:var(--radius); padding:1.25rem;
+  font-family:'Courier New',monospace; font-size:0.78rem;
+  line-height:1.9; overflow-x:auto;
+}
+.cf-key   { color:#60a5fa; }
+.cf-val   { color:#fcd34d; }
+.cf-comment { color:rgba(125,206,141,0.45); }
+.cf-str   { color:#86efac; }
+.terminal-block {
+  background:#050c06; border:1px solid rgba(45,122,58,0.2);
+  border-radius:var(--radius); padding:1rem;
+  font-family:'Courier New',monospace; font-size:0.78rem;
+  line-height:1.85; color:#7dce8d;
+  max-height:210px; overflow-y:auto;
+}
+.t-warn   { color:#fbbf24; }
+.t-err    { color:#f87171; }
+.t-info   { color:#60a5fa; }
+.t-dim    { color:rgba(125,206,141,0.4); }
+.t-cursor { display:inline-block;width:7px;height:13px;background:#7dce8d;animation:blink 0.8s infinite;vertical-align:middle; }
+.cred-grid { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+.cred-card {
+  background:var(--amber-light); border:1px solid #fcd34d;
+  border-radius:var(--radius); padding:1.1rem;
+}
+.cred-label { font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--amber);margin-bottom:0.4rem; }
+.cred-val { font-family:'Courier New',monospace;font-size:0.8rem;color:var(--text);word-break:break-all; }
+.cred-note { font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem; }
+.restricted-banner {
+  background:var(--red-light);border:1px solid #fca5a5;border-left:4px solid var(--red);
+  border-radius:var(--radius);padding:0.9rem 1.25rem;
+  display:flex;align-items:center;gap:0.75rem;
+  margin-bottom:1.75rem;font-size:0.88rem;
+  animation:flashL 2s infinite;
+}
+@keyframes flashL { 0%,100%{border-left-color:var(--red)} 50%{border-left-color:#fca5a5} }
+.tag-green { background:var(--green-pale);color:var(--green);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-amber { background:var(--amber-light);color:var(--amber);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-red   { background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
+.tag-blue  { background:#e0f2fe;color:var(--blue);padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600; }
