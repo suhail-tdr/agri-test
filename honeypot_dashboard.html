@@ -154,6 +154,19 @@
 
   /* Log table */
   .log-table { width: 100%; border-collapse: collapse; }
+  .log-scroll {
+    height: clamp(480px, 72vh, 760px);
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+
+  .log-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .log-scroll::-webkit-scrollbar-track { background: rgba(0,255,106,0.04); }
+  .log-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0,255,106,0.25);
+    border: 1px solid rgba(0,255,106,0.35);
+  }
+
   .log-table th {
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.58rem;
@@ -162,6 +175,10 @@
     text-align: left;
     padding: 0 0.75rem 0.75rem;
     border-bottom: 1px solid rgba(0,255,106,0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(0,20,8,0.98);
+    z-index: 2;
   }
 
   .log-table td {
@@ -361,7 +378,7 @@
 
   <!-- Open trap button -->
   <button class="open-trap-btn" onclick="openTrap()">
-    ▶  OPEN HONEYPOT TRAP PAGE IN NEW TAB
+    ▶  OPEN HONEYPOT MONITORING
   </button>
 
   <!-- Two column: log table + side panels -->
@@ -377,18 +394,20 @@
         </div>
       </div>
       <div class="panel-body" style="padding:0;">
-        <table class="log-table">
-          <thead><tr>
-            <th>#</th>
-            <th>TIMESTAMP</th>
-            <th>EVENT</th>
-            <th>OPERATOR ID</th>
-            <th>STATUS</th>
-          </tr></thead>
-          <tbody id="log-body">
-            <tr><td colspan="5" class="empty">NO CONNECTIONS YET — OPEN THE TRAP PAGE TO BEGIN</td></tr>
-          </tbody>
-        </table>
+        <div class="log-scroll">
+          <table class="log-table">
+            <thead><tr>
+              <th>#</th>
+              <th>TIMESTAMP</th>
+              <th>EVENT</th>
+              <th>OPERATOR ID</th>
+              <th>STATUS</th>
+            </tr></thead>
+            <tbody id="log-body">
+              <tr><td colspan="5" class="empty">NO CONNECTIONS YET — OPEN THE TRAP PAGE TO BEGIN</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -512,15 +531,16 @@
       let badge = '';
       if (e.event === 'PAGE_VISIT') badge = '<span class="badge badge-visit">VISIT</span>';
       else if (e.event === 'LOGIN_ATTEMPT') badge = '<span class="badge badge-login">ATTEMPT</span>';
+      else if (e.event === 'LOGIN_SUCCESS') badge = '<span class="badge" style="background:rgba(0,255,106,0.1);color:var(--green);border:1px solid rgba(0,255,106,0.3)">LOGGED IN</span>';
       else if (e.event === 'ACCESS_DENIED') badge = '<span class="badge badge-denied">DENIED</span>';
+      const statusText = e.event === 'ACCESS_DENIED' ? 'LOGGED & DENIED' : e.event === 'LOGIN_SUCCESS' ? 'LOGGED IN' : 'RECORDED';
+      const statusColor = e.event === 'ACCESS_DENIED' ? 'var(--red)' : e.event === 'LOGIN_SUCCESS' ? 'var(--green)' : 'var(--text-dim)';
       return `<tr class="${i === 0 ? 'new-entry' : ''}">
         <td style="color:var(--text-dim)">${e.id.toString().padStart(3,'0')}</td>
         <td style="color:var(--text-dim)">${e.ts}</td>
         <td>${badge}</td>
         <td>${e.user}</td>
-        <td style="color:${e.event==='ACCESS_DENIED'?'var(--red)':'var(--text-dim)'}">
-          ${e.event==='ACCESS_DENIED'?'LOGGED & DENIED':'RECORDED'}
-        </td>
+        <td style="color:${statusColor}">${statusText}</td>
       </tr>`;
     }).join('');
   }
@@ -614,7 +634,7 @@
 
   // ── OPEN TRAP ─────────────────────────────────────────────
   function openTrap() {
-    window.open('login.html', '_blank');
+    window.open('honeypot_monitoring.html', '_blank');
   }
 
   // ── INIT ─────────────────────────────────────────────────

@@ -369,16 +369,16 @@ body { background:#0a150c; }
 </div><!-- /dash-layout -->
 
 <script>
-// Animate system stats
+// ── 1. SYSTEM STAT FLICKER ────────────────────────────────
 setInterval(()=>{
-  document.getElementById('s-cpu').textContent = Math.round(18+Math.random()*18)+'%';
-  document.getElementById('s-ram').textContent = Math.round(63+Math.random()*9)+'%';
+  document.getElementById('s-cpu').textContent  = Math.round(18+Math.random()*18)+'%';
+  document.getElementById('s-ram').textContent  = Math.round(63+Math.random()*9)+'%';
   document.getElementById('s-conn').textContent = Math.round(138+Math.random()*24);
 },2500);
 
-// Append live flagged entries to terminal
-const terminal = document.getElementById('terminal');
-const fakeIPs  = ['185.220.101.45','94.102.49.193','45.76.184.32','23.95.97.58','64.225.80.11','178.128.96.44','159.65.220.18'];
+// ── 2. FAKE TERMINAL LOG STREAM ───────────────────────────
+const terminal  = document.getElementById('terminal');
+const fakeIPs   = ['185.220.101.45','94.102.49.193','45.76.184.32','23.95.97.58','64.225.80.11','178.128.96.44','159.65.220.18'];
 const fakePaths = ['/internal/server-data','/api/v2/admin','/db_config.json','/api_keys.conf','/.env','/user_records.sql','/backup/latest'];
 const fakeGeos  = ['Frankfurt, DE','Bucharest, RO','Amsterdam, NL','New York, US','Singapore, SG','London, GB','Moscow, RU'];
 let logCount = 0;
@@ -389,7 +389,7 @@ setInterval(()=>{
   const geo  = fakeGeos[Math.floor(Math.random()*fakeGeos.length)];
   const ts   = new Date().toTimeString().slice(0,8);
   const line = document.createElement('div');
-  const isHP = path.includes('env') || path.includes('db_config') || path.includes('server-data');
+  const isHP = path.includes('env')||path.includes('db_config')||path.includes('server-data');
   line.className = isHP ? 't-err' : 't-warn';
   line.textContent = isHP
     ? `HONEYPOT: ip=${ip} path=${path} geo="${geo}" ts=${ts} [CAPTURED]`
@@ -398,11 +398,241 @@ setInterval(()=>{
   terminal.scrollTop = terminal.scrollHeight;
 },4500);
 
-// Scroll helper
+// ── 3. SCROLL HELPER ──────────────────────────────────────
 function scrollTo(id){
   const el = document.getElementById(id);
   if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     HONEYPOT ACTIVITY TRACKER
+     Logs every visitor action to localStorage key 'fp_fake_logs'
+     so honeypot_monitoring.html can read and display them live.
+     ═══════════════════════════════════════════════════════ -->
+<style>
+/* copy-caught toast intentionally hidden — trap must be invisible to attacker */
+
+/* section-ping animation removed — tracking is invisible */
+
+/* Silent watermark (invisible to attacker but in source) */
+/* HONEYPOT TRAP ACTIVE — visitor fingerprinting enabled */
+</style>
+
+<!-- copy detection runs silently — no visible element -->
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────────────────────
+   HONEYPOT TRACKING ENGINE
+   ─────────────────────────────────────────────────────── */
+
+const HP_KEY     = 'fp_fake_logs';   // read by honeypot_monitoring.html
+const MAX_LOGS   = 200;
+const PAGE_START = Date.now();
+
+/* ── BROWSER FINGERPRINT ─────────────────────────────────── */
+const FP = (function buildFingerprint() {
+  const ua = navigator.userAgent;
+  function browser() {
+    if (ua.includes('Chrome') && !ua.includes('Edg'))
+      return 'Chrome ' + (ua.match(/Chrome\/([\d]+)/)?.[1]||'');
+    if (ua.includes('Firefox'))
+      return 'Firefox ' + (ua.match(/Firefox\/([\d]+)/)?.[1]||'');
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    if (ua.includes('Edg')) return 'Edge';
+    return 'Unknown';
+  }
+  function os() {
+    if (ua.includes('Android'))                          return 'Android';
+    if (ua.includes('iPhone')||ua.includes('iPad'))      return 'iOS';
+    if (ua.includes('Windows NT 10'))                    return 'Windows 10/11';
+    if (ua.includes('Windows'))                          return 'Windows';
+    if (ua.includes('Mac OS'))                           return 'macOS';
+    if (ua.includes('Linux'))                            return 'Linux';
+    return 'Unknown';
+  }
+  return {
+    browser  : browser(),
+    os       : os(),
+    screen   : `${screen.width}×${screen.height}`,
+    tz       : Intl.DateTimeFormat().resolvedOptions().timeZone,
+    lang     : navigator.language,
+    touch    : navigator.maxTouchPoints > 0 ? 'Yes' : 'No',
+    device   : navigator.maxTouchPoints > 0 ? 'Mobile/Tablet' : 'Desktop',
+    dpr      : window.devicePixelRatio || 1,
+  };
+})();
+
+/* ── LOG ENGINE ──────────────────────────────────────────── */
+function hpLog(activity, extra) {
+  const entry = {
+    ts       : new Date().toLocaleString('en-IN', {hour12:false}),
+    activity : activity,
+    browser  : FP.browser,
+    os       : FP.os,
+    screen   : FP.screen,
+    tz       : FP.tz,
+    lang     : FP.lang,
+    touch    : FP.touch,
+    device   : FP.device,
+    timeOnPage : Math.round((Date.now()-PAGE_START)/1000) + 's',
+    scrollY  : window.scrollY + 'px',
+    ...extra,
+  };
+  try {
+    const existing = JSON.parse(localStorage.getItem(HP_KEY)||'[]');
+    existing.unshift(entry);
+    if (existing.length > MAX_LOGS) existing.length = MAX_LOGS;
+    localStorage.setItem(HP_KEY, JSON.stringify(existing));
+  } catch(e) {}
+}
+
+/* ── COPY-CAUGHT TOAST — removed (trap must be invisible) ── */
+
+/* ── EVENT: PAGE VISIT ───────────────────────────────────── */
+hpLog('Visited fake-page.html — Session started', { event:'visit' });
+
+/* ── EVENT: COPY (Ctrl+C / right-click copy) ─────────────── */
+document.addEventListener('copy', () => {
+  const sel  = window.getSelection()?.toString().trim() || '';
+  const text = sel || '[clipboard]';
+  hpLog(`Copied data: "${text.slice(0,120)}"`, { event:'copy', copied:text.slice(0,300) });
+});
+
+/* ── EVENT: CUT ──────────────────────────────────────────── */
+document.addEventListener('cut', () => {
+  const sel = window.getSelection()?.toString().trim() || '';
+  hpLog(`Cut text: "${sel.slice(0,120)}"`, { event:'copy', copied:sel.slice(0,300) });
+});
+
+/* ── EVENT: TEXT SELECTION (mouseup) ─────────────────────── */
+let lastSelection = '';
+document.addEventListener('mouseup', () => {
+  const sel = window.getSelection()?.toString().trim() || '';
+  if (sel && sel.length > 4 && sel !== lastSelection) {
+    lastSelection = sel;
+    hpLog(`Selected text: "${sel.slice(0,120)}"`, { event:'select', selected:sel.slice(0,300) });
+  }
+});
+
+/* ── EVENT: KEYBOARD SHORTCUT (Ctrl+A, Ctrl+S, etc.) ────── */
+document.addEventListener('keydown', (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  const key = e.key.toUpperCase();
+  const map = { A:'Select All', S:'Save Page', P:'Print', U:'View Source', F:'Find on Page' };
+  if (map[key]) {
+    hpLog(`Keyboard shortcut detected: ${e.ctrlKey?'Ctrl':'Cmd'}+${key} (${map[key]})`, { event:'shortcut', shortcut:key });
+  }
+});
+
+/* ── EVENT: SCROLL DEPTH ─────────────────────────────────── */
+const scrollMilestones = new Set();
+document.addEventListener('scroll', () => {
+  const pct = Math.round(
+    (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100
+  );
+  const milestone = Math.floor(pct / 25) * 25;  // 0, 25, 50, 75, 100
+  if (milestone > 0 && !scrollMilestones.has(milestone)) {
+    scrollMilestones.add(milestone);
+    hpLog(`Scrolled to ${milestone}% of page`, { event:'scroll', depth: milestone+'%' });
+  }
+}, { passive:true });
+
+/* ── EVENT: SECTION VIEWS (IntersectionObserver) ────────── */
+const SECTION_NAMES = {
+  'sec-db'      : 'DB Config (db_config.json)',
+  'sec-api'     : 'API Keys (api_keys.conf)',
+  'sec-access'  : 'Access Logs (auth.log)',
+  'sec-users'   : 'User Records (user_records.sql)',
+  'sec-env'     : '.env File (Environment Variables)',
+  'sec-backup'  : 'Backup Status',
+  'sec-network' : 'Network / Open Ports',
+  'sec-terminal': 'Live Terminal (nginx/access.log)',
+};
+const viewedSections = new Set();
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id   = entry.target.id;
+      const name = SECTION_NAMES[id] || id;
+      if (!viewedSections.has(id)) {
+        viewedSections.add(id);
+        hpLog(`Viewed section: ${name}`, { event:'section', sectionId:id, sectionName:name });
+      }
+    }
+  });
+}, { threshold: 0.25 });  // fires when 25% of the section is visible
+
+Object.keys(SECTION_NAMES).forEach(id => {
+  const el = document.getElementById(id);
+  if (el) sectionObserver.observe(el);
+});
+
+/* ── EVENT: CLICKS ON BUTTONS / LINKS ───────────────────── */
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('button, a, [onclick]');
+  if (!target) return;
+  const label = target.textContent.trim().slice(0,60) ||
+                target.getAttribute('onclick') || 'Unknown element';
+  hpLog(`Clicked: "${label}"`, { event:'click', element: target.tagName, label });
+});
+
+/* ── EVENT: FOCUS on inputs / inputs ─────────────────────── */
+document.addEventListener('focusin', (e) => {
+  if (!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  const name = e.target.name || e.target.id || e.target.placeholder || 'field';
+  hpLog(`Focused on form field: ${name}`, { event:'focus', field:name });
+});
+
+/* ── EVENT: RIGHT-CLICK (context menu) ───────────────────── */
+document.addEventListener('contextmenu', (e) => {
+  const sel  = window.getSelection()?.toString().trim() || '';
+  const near = e.target.closest('[id]')?.id || e.target.tagName;
+  hpLog(`Right-click detected near "${near}"${sel ? ` — selected: "${sel.slice(0,80)}"` : ''}`, {
+    event: 'rightclick', near, selected: sel.slice(0,200)
+  });
+});
+
+/* ── EVENT: PAGE VISIBILITY (tab switch / minimize) ─────── */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    hpLog('Switched away from page (tab hidden / minimised)', { event:'blur' });
+  } else {
+    hpLog('Returned to page (tab became visible again)', { event:'focus' });
+  }
+});
+
+/* ── EVENT: PAGE EXIT / CLOSE ────────────────────────────── */
+window.addEventListener('beforeunload', () => {
+  const elapsed = Math.round((Date.now()-PAGE_START)/1000);
+  hpLog(`Left page after ${elapsed}s — ${viewedSections.size} sections viewed`, {
+    event   : 'exit',
+    elapsed : elapsed + 's',
+    sections: [...viewedSections].join(', '),
+  });
+});
+
+/* ── EVENT: TIME MILESTONES (30s, 60s, 120s, 300s) ──────── */
+[30, 60, 120, 300].forEach(secs => {
+  setTimeout(() => {
+    hpLog(`Still on page after ${secs}s — ${viewedSections.size} sections viewed so far`, {
+      event   : 'time',
+      milestone: secs + 's',
+      sections : [...viewedSections].join(', '),
+    });
+  }, secs * 1000);
+});
+
+/* ── EVENT: PRINT ATTEMPT ────────────────────────────────── */
+window.addEventListener('beforeprint', () => {
+  hpLog('Print dialog opened — attempting to print/save page as PDF', { event:'print' });
+});
+
+/* monitor badge removed — must not be visible to attacker */
+
 </script>
 <script src="js/honeypot.js"></script>
 </body>

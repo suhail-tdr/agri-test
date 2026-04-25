@@ -31,7 +31,19 @@
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
-    background: linear-gradient(180deg, #87ceeb 0%, #b8e4f5 35%, #c8e8a0 55%, #5a8a2a 65%, #3d6b1a 80%, #2d5010 100%);
+    background:
+      radial-gradient(circle at 18% 14%, rgba(255,255,255,0.65) 0 6%, transparent 14%),
+      radial-gradient(circle at 78% 10%, rgba(255,236,168,0.55) 0 3.5%, transparent 10%),
+      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.22) 0 24%, transparent 52%),
+      linear-gradient(180deg, #87ceeb 0%, #b8e4f5 32%, #d8efb7 52%, #6e9b35 66%, #43751d 82%, #26460d 100%);
+  }
+
+  body::before,
+  body::after,
+  .bg-orb,
+  .bg-ribbon,
+  .bg-particles {
+    pointer-events: none;
   }
 
   /* Animated clouds */
@@ -49,8 +61,9 @@
     z-index: 0;
   }
   @keyframes cloudDrift {
-    0%   { background-position: 0px 0px; transform: translateX(0); }
-    100% { background-position: 200px 0px; transform: translateX(60px); }
+    0%   { background-position: 0px 0px; transform: translateX(0) scale(1); }
+    50%  { transform: translateX(18px) scale(1.01); }
+    100% { background-position: 220px 0px; transform: translateX(60px) scale(1); }
   }
 
   /* Sun */
@@ -64,6 +77,75 @@
     z-index: 1;
   }
   @keyframes sunPulse { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.08) rotate(5deg)} }
+
+  /* Floating ambient glows */
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(18px);
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    z-index: 0;
+    animation: orbFloat 14s ease-in-out infinite;
+  }
+  .bg-orb.orb1 {
+    width: 220px; height: 220px; left: -40px; top: 14%;
+    background: radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.35) 28%, rgba(90,158,47,0.08) 62%, transparent 72%);
+  }
+  .bg-orb.orb2 {
+    width: 320px; height: 320px; right: -90px; top: 18%;
+    background: radial-gradient(circle, rgba(255,226,138,0.7) 0%, rgba(255,226,138,0.22) 30%, rgba(255,255,255,0.05) 66%, transparent 75%);
+    animation-duration: 18s;
+    animation-delay: -4s;
+  }
+  .bg-orb.orb3 {
+    width: 280px; height: 280px; left: 50%; bottom: 6%;
+    background: radial-gradient(circle, rgba(105,180,70,0.35) 0%, rgba(105,180,70,0.12) 30%, transparent 72%);
+    animation-duration: 20s;
+    animation-delay: -8s;
+  }
+  @keyframes orbFloat {
+    0%,100% { transform: translateY(0) translateX(0) scale(1); }
+    33% { transform: translateY(-18px) translateX(12px) scale(1.04); }
+    66% { transform: translateY(14px) translateX(-14px) scale(0.98); }
+  }
+
+  .bg-ribbon {
+    position: fixed;
+    inset: auto -10% 28% -10%;
+    height: 180px;
+    z-index: 0;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 18%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 82%, transparent 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.05), transparent 60%);
+    filter: blur(2px);
+    opacity: 0.5;
+    transform: skewY(-6deg);
+    animation: ribbonFlow 12s linear infinite;
+  }
+  @keyframes ribbonFlow {
+    0% { transform: translateX(-4%) skewY(-6deg); }
+    100% { transform: translateX(4%) skewY(-6deg); }
+  }
+
+  .bg-particles {
+    position: fixed; inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .bg-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.65);
+    box-shadow: 0 0 12px rgba(255,255,255,0.55);
+    animation: particleDrift linear infinite;
+  }
+  @keyframes particleDrift {
+    0% { transform: translate3d(0,0,0) scale(0.8); opacity: 0; }
+    10% { opacity: 0.9; }
+    50% { opacity: 0.35; }
+    100% { transform: translate3d(50px,-120px,0) scale(1.2); opacity: 0; }
+  }
 
   /* Farm canvas overlay */
   #farm-canvas {
@@ -85,6 +167,7 @@
     font-size: 0.7rem; color: var(--text-dim);
     z-index: 100;
     backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   }
   .status-dot { width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; margin-right:6px; animation:pulse 1.5s ease-in-out infinite; }
@@ -183,6 +266,7 @@
     font-size: 0.62rem; padding: 3px 12px;
     border-radius: 20px; margin-top: 0.6rem; letter-spacing: 2px;
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 
   /* ── LOGIN CARD ─────────────────────────────────── */
@@ -202,6 +286,7 @@
       0 0 0 1px rgba(255,255,255,0.6) inset;
     animation: fadeInUp 0.7s cubic-bezier(.22,.68,0,1.2) 0.15s both;
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   @keyframes fadeInUp { from{opacity:0;transform:translateY(40px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
@@ -468,6 +553,11 @@
   </div>
 </div>
 
+<div class="bg-ribbon"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+<div class="bg-particles" id="bg-particles"></div>
 <canvas id="farm-canvas"></canvas>
 
 <div class="container">
@@ -552,7 +642,7 @@
   <div class="success-log">
     <div><span class="s-label">TIMESTAMP  : </span><span class="s-val" id="s-time">—</span></div>
     <div><span class="s-label">USER       : </span><span class="s-val" id="s-user">—</span></div>
-    <div><span class="s-label">FARM ID    : </span><span class="s-val">AC-KL-2847</span></div>
+    <div><span class="s-label">FARM ID    : </span><span class="s-val" id="s-farmid">AC-KL-2847</span></div>
     <div><span class="s-label">CLEARANCE  : </span><span class="s-val">LEVEL 3 — FARM OWNER</span></div>
     <div><span class="s-label">STATUS     : </span><span class="s-val">SESSION ESTABLISHED ✓</span></div>
   </div>
@@ -565,14 +655,73 @@
 <script src="js/honeypot.js"></script>
 <script>
 // ── CONFIG ───────────────────────────────────────────
-// Each user has a password and destination page
+// Each user has a password, destination page, and full profile
 const VALID_USERS = {
-  "farmer.rajan":   { pass: "Harvest@2024", dest: "farm-details.html" },
-  "agri@admin":     { pass: "AgriAdmin@",   dest: "server-data.html"  },
-  "krishna.farm":   { pass: "Paddy#Field9", dest: "farm-details.html" },
-  "meera.grower":   { pass: "SoilSeed$7",   dest: "farm-details.html" },
-  "thomas.agri":    { pass: "Keral@Farm3",  dest: "farm-details.html" },
-  "admin@honeypot": { pass: "Honeypot@admin",    dest: "honeypot_dashboard.html" },
+
+  "admin@dashboard": {
+    pass: "dashboard@admin", dest: "honeypot_dashboard.html",
+    name: "Dashboard", initials: "DA",
+    farmId: "AC-DASH-001",   district: "Internal",
+    area: "—",             plan: "Admin",
+    crops: "—",
+  },
+  "agri@admin": {
+    pass: "AgriAdmin@", dest: "server-data.html",
+    name: "Admin User",    initials: "AU",
+    farmId: "AC-ADMIN-01", district: "Kochi, Kerala",
+    area: "—",             plan: "Admin",
+    crops: "—",
+  },
+  "admin@monitor": {
+    pass: "Monitor@admin", dest: "honeypot_monitoring.html",
+    name: "Monitor Admin", initials: "MA",
+    farmId: "AC-MON-001",  district: "Internal",
+    area: "—",             plan: "Admin",
+    crops: "—",
+  },
+
+  "user":{
+    pass: "user@123", dest: "farm-details.html",
+    name: "User", initials: "U",
+    farmId: "AC-TEST-01", district: "Test District",
+    area: "0.0 ha", plan: "Test Plan",
+    crops: "Test Crops",
+  },
+    "farmer.rajan": {
+    pass: "Rajan@2024", dest: "farm-details.html",
+    name: "Rajan Pillai",   initials: "RP",
+    farmId: "AC-KL-2847",  district: "Tiruvalla, Kerala",
+    area: "14.5 ha",       plan: "Pro",
+    crops: "Rice, Coconut, Turmeric, Banana",
+  },
+  "krishna.farm": {
+    pass: "Paddy#Field9", dest: "farm-details.html",
+    name: "Krishna Menon",  initials: "KM",
+    farmId: "AC-KL-1134",  district: "Thrissur, Kerala",
+    area: "8.2 ha",        plan: "Basic",
+    crops: "Rice, Banana, Pepper",
+  },
+  "meera.grower": {
+    pass: "SoilSeed$7", dest: "farm-details.html",
+    name: "Meera Nair",     initials: "MN",
+    farmId: "AC-KL-3204",  district: "Palakkad, Kerala",
+    area: "6.0 ha",        plan: "Pro",
+    crops: "Vegetables, Turmeric, Coconut",
+  },
+  "thomas.agri": {
+    pass: "Keral@Farm3", dest: "farm-details.html",
+    name: "Thomas Varghese", initials: "TV",
+    farmId: "AC-KL-0441",  district: "Kottayam, Kerala",
+    area: "11.0 ha",       plan: "Pro",
+    crops: "Rubber, Rice",
+  },
+  "lakshmi.farmer": {
+    pass: "GreenLeaf#5", dest: "farm-details.html",
+    name: "Lakshmi Devi", initials: "LD",
+    farmId: "AC-KL-2210",  district: "Ernakulam, Kerala",
+    area: "4.5 ha",        plan: "Basic",
+    crops: "Vegetables, Flowers",
+  },
 };
 
 // Honeypot credentials — first attempt: show error, subsequent: fake-page.html
@@ -580,6 +729,9 @@ const HONEYPOT_CREDS = [
   { u: "admin",     p: "admin"    },
   { u: "admin",     p: "123456"   },
   { u: "admin",     p: "password" },
+  { u: "admin123",  p: "admin123" },
+  { u: "root",      p: "root"     },
+  { u: "root",      p: "admin"    },
 ];
 
 // SQL injection patterns
@@ -695,10 +847,28 @@ function attemptLogin() {
     if (record && record.pass === rawPass) {
       saveLog({ event:'LOGIN_SUCCESS', ts: new Date().toISOString(), user });
 
+      // ── SAVE SESSION ─────────────────────────────────
+      const session = {
+        username:  rawUser,
+        name:      record.name,
+        initials:  record.initials,
+        farmId:    record.farmId,
+        district:  record.district,
+        area:      record.area,
+        plan:      record.plan,
+        crops:     record.crops,
+        loginTime: new Date().toISOString(),
+      };
+      sessionStorage.setItem('agri_session', JSON.stringify(session));
+
       const overlay = document.getElementById('success-overlay');
       overlay.classList.add('show');
       document.getElementById('s-time').textContent = new Date().toLocaleString('en-GB');
-      document.getElementById('s-user').textContent = user.toUpperCase();
+      document.getElementById('s-user').textContent = record.name.toUpperCase();
+
+      // Update success overlay farm id line dynamically
+      const farmIdEl = document.getElementById('s-farmid');
+      if (farmIdEl) farmIdEl.textContent = record.farmId;
 
       const fill = document.getElementById('success-fill');
       fill.style.transition = 'width 2s linear';
@@ -780,6 +950,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(
 (function() {
   const canvas = document.getElementById('farm-canvas');
   const ctx = canvas.getContext('2d');
+  const particleHost = document.getElementById('bg-particles');
 
   function resize() {
     canvas.width = window.innerWidth;
@@ -787,6 +958,24 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(
   }
   resize();
   window.addEventListener('resize', resize);
+
+  // ── FLOATING LIGHT PARTICLES ───────────────────────────
+  const particles = [];
+  const PARTICLE_COUNT = 26;
+  if (particleHost) {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = document.createElement('span');
+      p.className = 'bg-particle';
+      const size = 2 + Math.random() * 4;
+      const left = Math.random() * 100;
+      const top = 12 + Math.random() * 78;
+      const duration = 10 + Math.random() * 16;
+      const delay = -Math.random() * duration;
+      p.style.cssText = `width:${size}px;height:${size}px;left:${left}%;top:${top}%;animation-duration:${duration}s;animation-delay:${delay}s;`;
+      particleHost.appendChild(p);
+      particles.push({ x: left, y: top, drift: 0.2 + Math.random() * 0.6, rise: 0.3 + Math.random() * 0.7 });
+    }
+  }
 
   // ── WHEAT STALKS ──────────────────────────────────────
   const stalks = [];
@@ -937,6 +1126,33 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(
     t += 0.016;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Soft atmospheric haze
+    const haze = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.28, 50, canvas.width * 0.5, canvas.height * 0.28, canvas.width * 0.6);
+    haze.addColorStop(0, 'rgba(255,255,255,0.12)');
+    haze.addColorStop(0.45, 'rgba(255,255,255,0.05)');
+    haze.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Sun rays sweeping through the sky
+    ctx.save();
+    ctx.globalAlpha = 0.14;
+    const rayGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height * 0.45);
+    rayGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    rayGrad.addColorStop(0.5, 'rgba(255,255,255,0.16)');
+    rayGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = rayGrad;
+    for (let i = 0; i < 3; i++) {
+      const offset = Math.sin(t * 0.35 + i) * 60;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width * 0.06 + offset, canvas.height * 0.04);
+      ctx.lineTo(canvas.width * 0.36 + offset, canvas.height * 0.46);
+      ctx.lineTo(canvas.width * 0.30 + offset, canvas.height * 0.46);
+      ctx.lineTo(canvas.width * 0.0 + offset, canvas.height * 0.04);
+      ctx.fill();
+    }
+    ctx.restore();
+
     // Ground stripe
     const grd = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
     grd.addColorStop(0, 'rgba(90,140,40,0.25)');
@@ -975,6 +1191,25 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(
       if (bf.x < 10 || bf.x > canvas.width - 10) bf.vx *= -1;
       if (bf.y < canvas.height * 0.3 || bf.y > canvas.height * 0.75) bf.vy *= -1;
       drawButterfly(bf.x, bf.y, bf.phase, bf.color, bf.scale);
+    });
+
+    // Light pollen motes drifting upward
+    particles.forEach((pt, index) => {
+      pt.x += Math.sin(t * pt.drift + index) * 0.15;
+      pt.y -= pt.rise;
+      if (pt.y < -5) {
+        pt.y = 102 + Math.random() * 8;
+        pt.x = Math.random() * 100;
+      }
+      const px = (pt.x / 100) * canvas.width;
+      const py = (pt.y / 100) * canvas.height;
+      ctx.save();
+      ctx.globalAlpha = 0.4 + Math.sin(t * 2 + index) * 0.15;
+      ctx.fillStyle = index % 3 === 0 ? 'rgba(255,245,200,0.95)' : 'rgba(255,255,255,0.85)';
+      ctx.beginPath();
+      ctx.arc(px, py, 0.9 + (index % 4) * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     });
 
     requestAnimationFrame(draw);

@@ -92,6 +92,61 @@ canvas { display:block;width:100% !important; }
 .sitem-label { font-size:0.88rem;font-weight:600; }
 .sitem-sub { font-size:0.75rem;color:var(--text-muted); }
 
+/* ── DARK MODE ─────────────────────────────────────── */
+.theme-toggle {
+  border:1px solid var(--border);
+  background:var(--bg-alt);
+  color:var(--text);
+  border-radius:8px;
+  padding:0.4rem 0.8rem;
+  font-size:0.78rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.theme-toggle:hover { border-color:var(--green); color:var(--green); }
+
+body.dark-mode {
+  --bg:#0e1712;
+  --bg-alt:#17241c;
+  --bg-dark:#07100b;
+  --bg-dark2:#101c15;
+  --green-pale:#173425;
+  --text:#e8f2eb;
+  --text-muted:#a7b9ab;
+  --text-light:#8fa294;
+  --amber-light:#3a2a12;
+  --red-light:#3a1e22;
+  --border:#2b3f33;
+  --shadow:0 8px 30px rgba(0,0,0,0.45);
+  --shadow-lg:0 20px 60px rgba(0,0,0,0.55);
+}
+
+body.dark-mode .dash-card,
+body.dark-mode .dstat,
+body.dark-mode .zone-card,
+body.dark-mode .ai-msg.bot,
+body.dark-mode .ai-chip,
+body.dark-mode .fi,
+body.dark-mode .market-table,
+body.dark-mode .threat-table,
+body.dark-mode .weather-card,
+body.dark-mode .weather-alert-box {
+  background:#152118;
+}
+
+body.dark-mode .dash-topbar,
+body.dark-mode .dash-sidebar,
+body.dark-mode .dash-main,
+body.dark-mode .dash-content {
+  background:var(--bg);
+}
+
+body.dark-mode .fi { color:var(--text); }
+body.dark-mode .toggle-sl::before { background:#e5efe8; }
+body.dark-mode #toast { background:#1b2a1f; color:#edf7ef; }
+body.dark-mode .sat-badge { background:rgba(0,0,0,.6); }
+
 /* ── RESPONSIVE ──────────────────────────────────────── */
 @media(max-width:900px){
   #menuBtn { display:flex !important; }
@@ -132,14 +187,13 @@ canvas { display:block;width:100% !important; }
     <div class="dash-nav-section">SYSTEM</div>
     <button class="dash-nav-item" onclick="show('logs',this)"><span class="nav-icon">📋</span> Activity Logs</button>
     <button class="dash-nav-item" onclick="show('settings',this)"><span class="nav-icon">⚙️</span> Settings</button>
-    
   </nav>
   <div class="dash-sidebar-footer">
     <div class="dash-user">
-      <div class="dash-avatar">SK</div>
+      <div class="dash-avatar" id="sb-avatar">SK</div>
       <div class="dash-user-info">
-        <div class="dash-user-name">Suresh Kumar</div>
-        <div class="dash-user-role">Farm Owner · Pro Plan</div>
+        <div class="dash-user-name" id="sb-name">Suresh Kumar</div>
+        <div class="dash-user-role" id="sb-role">Farm Owner · Pro Plan</div>
       </div>
       <button class="dash-logout" onclick="location.href='index.html'" title="Logout">⏻</button>
     </div>
@@ -154,13 +208,15 @@ canvas { display:block;width:100% !important; }
   <div class="dash-topbar">
     <button id="menuBtn" style="background:none;border:none;font-size:1.3rem;cursor:pointer;display:none;margin-right:0.5rem" onclick="document.getElementById('dashSidebar').classList.toggle('open')">☰</button>
     <div class="dash-page-title" id="pageTitle">Farm Dashboard
-      <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Farm ID: AC-KL-2847 · 14.5 ha · Kharif 2024</span>
+      <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Farm ID: <span id="hdr-farmid">AC-KL-2847</span> · <span id="hdr-area">14.5 ha</span> · Kharif 2024</span>
     </div>
     <div class="dash-topbar-actions">
+      <button id="themeToggle" class="theme-toggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙 Dark</button>
       <span style="font-size:0.78rem;color:var(--text-muted)">Synced: <span style="color:var(--green);font-weight:600" id="sync-time">2 min ago</span></span>
       <button class="dash-notif-btn">🔔<span class="dash-notif-badge"></span></button>
       <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
-        <div class="dash-avatar" style="width:30px;height:30px;font-size:0.75rem">SK</div>Suresh
+        <div class="dash-avatar" id="tb-avatar" style="width:30px;height:30px;font-size:0.75rem">SK</div>
+        <span id="tb-firstname">Suresh</span>
       </div>
     </div>
   </div>
@@ -251,7 +307,7 @@ canvas { display:block;width:100% !important; }
 ════════════════════════════════════════ -->
 <div id="sec-crops" class="page-section">
   <div class="sec-h">Crop Details</div>
-  <div class="sec-s">Kharif 2024 · 6 active crops · Farm AC-KL-2847 · 14.5 ha total</div>
+  <div class="sec-s">Kharif 2024 · 6 active crops · Farm <span id="crop-farmid">AC-KL-2847</span> · <span id="crop-area">14.5 ha</span> total</div>
   <div class="dash-stats">
     <div class="dstat"><div class="dstat-label">Total Crop Area</div><div class="dstat-num">12.5 ha</div><div class="dstat-sub">2 ha fallow</div><div class="dstat-icon">🗺️</div></div>
     <div class="dstat"><div class="dstat-label">Avg Health</div><div class="dstat-num" style="color:var(--green)">83/100</div><div class="dstat-sub">Good overall</div><div class="dstat-icon">💚</div></div>
@@ -603,33 +659,33 @@ canvas { display:block;width:100% !important; }
 ════════════════════════════════════════ -->
 <div id="sec-market" class="page-section">
   <div class="sec-h">Market Intelligence</div>
-  <div class="sec-s"><span class="live-dot"></span> Live Kerala Mandi prices — refreshed every 15 minutes</div>
+  <div class="sec-s"><span class="live-dot"></span> Live Kerala mandi prices — rice, coconut, turmeric, banana and more · refreshed every 15 minutes</div>
   <div class="dash-stats">
-    <div class="dstat"><div class="dstat-label">Rice (Kuruvai)</div><div class="dstat-num" style="color:var(--green)">₹2,180</div><div class="dstat-sub">▲ ₹49 today</div><div class="dstat-icon">🌾</div></div>
-    <div class="dstat"><div class="dstat-label">Turmeric</div><div class="dstat-num" style="color:var(--green)">₹14,200</div><div class="dstat-sub">▲ ₹760 today</div><div class="dstat-icon">🌿</div></div>
-    <div class="dstat amber"><div class="dstat-label">Banana (Nendran)</div><div class="dstat-num">₹3,400</div><div class="dstat-sub">▼ ₹48 today</div><div class="dstat-icon">🍌</div></div>
-    <div class="dstat blue"><div class="dstat-label">Coconut</div><div class="dstat-num">₹18.50</div><div class="dstat-sub">▲ ₹0.50 today</div><div class="dstat-icon">🥥</div></div>
+    <div class="dstat"><div class="dstat-label">Rice (Kuruvai)</div><div class="dstat-num" style="color:var(--green)">₹2,240</div><div class="dstat-sub">▲ ₹60 today</div><div class="dstat-icon">🌾</div></div>
+    <div class="dstat"><div class="dstat-label">Coconut</div><div class="dstat-num" style="color:var(--green)">₹19.25</div><div class="dstat-sub">▲ ₹0.75 today</div><div class="dstat-icon">🥥</div></div>
+    <div class="dstat amber"><div class="dstat-label">Banana (Nendran)</div><div class="dstat-num">₹3,180</div><div class="dstat-sub">▼ ₹68 today</div><div class="dstat-icon">🍌</div></div>
+    <div class="dstat blue"><div class="dstat-label">Turmeric</div><div class="dstat-num">₹14,550</div><div class="dstat-sub">▲ ₹350 today</div><div class="dstat-icon">🌿</div></div>
   </div>
   <div class="dash-grid2">
     <div class="dash-card">
-      <div class="dash-card-head"><h3>📊 All Commodity Prices</h3></div>
+      <div class="dash-card-head"><h3>📊 Regional Market Watch</h3><span class="tag-b">Updated 15 min ago</span></div>
       <div class="dash-card-body" style="padding:0">
         <table class="market-table">
-          <thead><tr><th>Commodity</th><th>Variety</th><th>Price</th><th>Change</th><th>Mandi</th><th>MSP</th></tr></thead>
+          <thead><tr><th>Crop</th><th>Variety</th><th>Price</th><th>Change</th><th>Mandi</th><th>MSP</th></tr></thead>
           <tbody>
-            <tr><td><strong>🌾 Rice (Paddy)</strong></td><td style="color:var(--text-muted)">Kuruvai</td><td><strong>₹2,180/qtl</strong></td><td class="price-up">▲ ₹49</td><td style="color:var(--text-muted)">Tiruvalla</td><td style="color:var(--text-muted)">₹2,183</td></tr>
-            <tr><td><strong>🥥 Coconut</strong></td><td style="color:var(--text-muted)">West Coast Tall</td><td><strong>₹18.50/unit</strong></td><td class="price-up">▲ ₹0.50</td><td style="color:var(--text-muted)">Haripad</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🌿 Turmeric</strong></td><td style="color:var(--text-muted)">Erode Finger</td><td><strong>₹14,200/qtl</strong></td><td class="price-up">▲ ₹760</td><td style="color:var(--text-muted)">Erode</td><td style="color:var(--text-muted)">₹9,000</td></tr>
-            <tr><td><strong>🍌 Banana</strong></td><td style="color:var(--text-muted)">Nendran</td><td><strong>₹3,400/qtl</strong></td><td class="price-down">▼ ₹48</td><td style="color:var(--text-muted)">Ernakulam</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🧅 Small Onion</strong></td><td style="color:var(--text-muted)">Bangalore Rose</td><td><strong>₹4,200/qtl</strong></td><td class="price-down">▼ ₹25</td><td style="color:var(--text-muted)">Kozhikode</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🌳 Rubber</strong></td><td style="color:var(--text-muted)">RSS-4</td><td><strong>₹198/kg</strong></td><td class="price-down">▼ ₹3</td><td style="color:var(--text-muted)">Kottayam</td><td style="color:var(--text-muted)">—</td></tr>
-            <tr><td><strong>🥬 Amaranthus</strong></td><td style="color:var(--text-muted)">Mixed Leafy</td><td><strong>₹1,080/qtl</strong></td><td class="price-up">▲ ₹32</td><td style="color:var(--text-muted)">Kochi</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌾 Rice (Paddy)</strong></td><td style="color:var(--text-muted)">Kuruvai</td><td><strong>₹2,240/qtl</strong></td><td class="price-up">▲ ₹60</td><td style="color:var(--text-muted)">Tiruvalla</td><td style="color:var(--text-muted)">₹2,183</td></tr>
+            <tr><td><strong>🥥 Coconut</strong></td><td style="color:var(--text-muted)">West Coast Tall</td><td><strong>₹19.25/unit</strong></td><td class="price-up">▲ ₹0.75</td><td style="color:var(--text-muted)">Haripad</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌿 Turmeric</strong></td><td style="color:var(--text-muted)">Erode Finger</td><td><strong>₹14,550/qtl</strong></td><td class="price-up">▲ ₹350</td><td style="color:var(--text-muted)">Erode</td><td style="color:var(--text-muted)">₹9,000</td></tr>
+            <tr><td><strong>🍌 Banana</strong></td><td style="color:var(--text-muted)">Nendran</td><td><strong>₹3,180/qtl</strong></td><td class="price-down">▼ ₹68</td><td style="color:var(--text-muted)">Ernakulam</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🧅 Small Onion</strong></td><td style="color:var(--text-muted)">Bangalore Rose</td><td><strong>₹4,120/qtl</strong></td><td class="price-down">▼ ₹40</td><td style="color:var(--text-muted)">Kozhikode</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🌳 Rubber</strong></td><td style="color:var(--text-muted)">RSS-4</td><td><strong>₹201/kg</strong></td><td class="price-up">▲ ₹3</td><td style="color:var(--text-muted)">Kottayam</td><td style="color:var(--text-muted)">—</td></tr>
+            <tr><td><strong>🥬 Amaranthus</strong></td><td style="color:var(--text-muted)">Mixed Leafy</td><td><strong>₹1,120/qtl</strong></td><td class="price-up">▲ ₹40</td><td style="color:var(--text-muted)">Kochi</td><td style="color:var(--text-muted)">—</td></tr>
           </tbody>
         </table>
       </div>
     </div>
     <div class="dash-card">
-      <div class="dash-card-head"><h3>📈 Price Trends — 30 Days</h3></div>
+      <div class="dash-card-head"><h3>📈 Price Trends — 30 Days</h3><span class="tag-g">Rice + Turmeric trend</span></div>
       <div class="dash-card-body"><div class="canvas-wrap"><canvas id="market-chart" height="200"></canvas></div></div>
     </div>
   </div>
@@ -696,7 +752,7 @@ canvas { display:block;width:100% !important; }
       <div class="dash-card-head"><h3>💬 Ask AI Advisor</h3></div>
       <div class="dash-card-body">
         <div class="ai-chat" id="ai-chat">
-          <div class="ai-msg bot">Hello Suresh 👋 I'm your Agri Cloud AI Advisor. Ask me anything about your farm — crop health, irrigation, pest management, or market timing.</div>
+          <div class="ai-msg bot" id="ai-greeting">Hello 👋 I'm your Agri Cloud AI Advisor. Ask me anything about your farm — crop health, irrigation, pest management, or market timing.</div>
         </div>
         <div class="ai-chips">
           <span class="ai-chip" onclick="askAI('When to harvest Shallots F7?')">Shallots harvest?</span>
@@ -749,11 +805,11 @@ canvas { display:block;width:100% !important; }
       <div class="dash-card" style="margin-bottom:1.25rem">
         <div class="dash-card-head"><h3>🏡 Farm Profile</h3></div>
         <div class="dash-card-body">
-          <div class="fg"><label class="fl">Farm Name</label><input class="fi" type="text" value="Suresh Kumar Farm — Tiruvalla"></div>
-          <div class="fg"><label class="fl">Farm ID</label><input class="fi" type="text" value="AC-KL-2847" disabled style="background:var(--bg-alt)"></div>
-          <div class="fg"><label class="fl">District / State</label><input class="fi" type="text" value="Tiruvalla, Kerala"></div>
-          <div class="fg"><label class="fl">Total Area (hectares)</label><input class="fi" type="number" value="14.5"></div>
-          <div class="fg"><label class="fl">Primary Crops</label><input class="fi" type="text" value="Rice, Coconut, Turmeric, Banana"></div>
+          <div class="fg"><label class="fl">Farm Name</label><input class="fi" type="text" id="set-farmname" value="Suresh Kumar Farm — Tiruvalla"></div>
+          <div class="fg"><label class="fl">Farm ID</label><input class="fi" type="text" id="set-farmid" value="AC-KL-2847" disabled style="background:var(--bg-alt)"></div>
+          <div class="fg"><label class="fl">District / State</label><input class="fi" type="text" id="set-district" value="Tiruvalla, Kerala"></div>
+          <div class="fg"><label class="fl">Total Area (hectares)</label><input class="fi" type="number" id="set-area" value="14.5"></div>
+          <div class="fg"><label class="fl">Primary Crops</label><input class="fi" type="text" id="set-crops" value="Rice, Coconut, Turmeric, Banana"></div>
           <button class="btn btn-primary" onclick="showToast('✅ Profile saved!')">Save Profile</button>
         </div>
       </div>
@@ -804,6 +860,126 @@ canvas { display:block;width:100% !important; }
 <script src="js/honeypot.js"></script>
 <script>
 /* ══════════════════════════════════════════════════
+   SESSION — load logged-in user from sessionStorage
+══════════════════════════════════════════════════ */
+const SESSION_DEFAULTS = {
+  name:     'Suresh Kumar',
+  initials: 'SK',
+  farmId:   'AC-KL-2847',
+  district: 'Tiruvalla, Kerala',
+  area:     '14.5',
+  plan:     'Pro',
+  crops:    'Rice, Coconut, Turmeric, Banana',
+  username: 'farmer.rajan',
+};
+
+let SESSION = SESSION_DEFAULTS;
+try {
+  const raw = sessionStorage.getItem('agri_session');
+  if (raw) SESSION = Object.assign({}, SESSION_DEFAULTS, JSON.parse(raw));
+} catch(e) {}
+
+const THEME_KEY = 'agri_theme';
+
+function updateThemeToggleLabel() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  const dark = document.body.classList.contains('dark-mode');
+  btn.textContent = dark ? '☀ Light' : '🌙 Dark';
+}
+
+function applyTheme(mode) {
+  document.body.classList.toggle('dark-mode', mode === 'dark');
+  updateThemeToggleLabel();
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+}
+
+function toggleTheme() {
+  const next = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem(THEME_KEY, next);
+  redrawActiveSectionCharts();
+}
+
+function redrawActiveSectionCharts() {
+  if (activeSection==='overview') drawOvChart();
+  if (activeSection==='crops') drawCropHealthChart();
+  if (activeSection==='sensors') drawTempChart();
+  if (activeSection==='irrigation') drawWaterChart();
+  if (activeSection==='satellite') drawNdviChart();
+  if (activeSection==='soil') drawSoilChart();
+  if (activeSection==='pest') drawPestChart();
+  if (activeSection==='market') drawMarketChart();
+  if (activeSection==='weather') drawHourlyChart();
+}
+
+initTheme();
+
+// Helper — first name only
+const FIRST = SESSION.name.split(' ')[0];
+// Initials — up to 2 chars from name
+const INITIALS = SESSION.initials ||
+  SESSION.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+function applySession() {
+  // Sidebar avatar + name + role
+  const sb_av = document.getElementById('sb-avatar');
+  const sb_nm = document.getElementById('sb-name');
+  const sb_rl = document.getElementById('sb-role');
+  if (sb_av) sb_av.textContent = INITIALS;
+  if (sb_nm) sb_nm.textContent = SESSION.name;
+  if (sb_rl) sb_rl.textContent = 'Farm Owner · ' + SESSION.plan + ' Plan';
+
+  // Topbar avatar + first name
+  const tb_av = document.getElementById('tb-avatar');
+  const tb_fn = document.getElementById('tb-firstname');
+  if (tb_av) tb_av.textContent = INITIALS;
+  if (tb_fn) tb_fn.textContent = FIRST;
+
+  // Header farm ID + area subtitles
+  const hdr_id   = document.getElementById('hdr-farmid');
+  const hdr_area = document.getElementById('hdr-area');
+  if (hdr_id)   hdr_id.textContent   = SESSION.farmId;
+  if (hdr_area) hdr_area.textContent = SESSION.area + ' ha';
+
+  // Crop details section subtitle
+  const cr_id   = document.getElementById('crop-farmid');
+  const cr_area = document.getElementById('crop-area');
+  if (cr_id)   cr_id.textContent   = SESSION.farmId;
+  if (cr_area) cr_area.textContent = SESSION.area + ' ha';
+
+  // Settings form fields
+  const sf_name     = document.getElementById('set-farmname');
+  const sf_id       = document.getElementById('set-farmid');
+  const sf_district = document.getElementById('set-district');
+  const sf_area     = document.getElementById('set-area');
+  const sf_crops    = document.getElementById('set-crops');
+  if (sf_name)     sf_name.value     = SESSION.name + ' Farm — ' + SESSION.district.split(',')[0];
+  if (sf_id)       sf_id.value       = SESSION.farmId;
+  if (sf_district) sf_district.value = SESSION.district;
+  if (sf_area)     sf_area.value     = SESSION.area;
+  if (sf_crops)    sf_crops.value    = SESSION.crops;
+
+  // AI greeting
+  const ai_gr = document.getElementById('ai-greeting');
+  if (ai_gr) ai_gr.innerHTML =
+    `Hello ${FIRST} 👋 I'm your Agri Cloud AI Advisor. Ask me anything about your farm — ` +
+    `crop health, irrigation, pest management, or market timing.`;
+
+  // Overview alert banner — personalise farm ID
+  const ov_farmid_els = document.querySelectorAll('.ov-farmid');
+  ov_farmid_els.forEach(el => el.textContent = SESSION.farmId);
+}
+
+// Run immediately so everything is set before first paint
+applySession();
+
+/* ══════════════════════════════════════════════════
    NAVIGATION
 ══════════════════════════════════════════════════ */
 const PAGE_TITLES = {
@@ -819,7 +995,7 @@ function show(id, btn) {
   activeSection = id;
   document.querySelectorAll('.dash-nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  document.getElementById('pageTitle').innerHTML = `${PAGE_TITLES[id]} <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Farm ID: AC-KL-2847 · 14.5 ha · Kharif 2024</span>`;
+  document.getElementById('pageTitle').innerHTML = `${PAGE_TITLES[id]} <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:0.5rem">Farm ID: ${SESSION.farmId} · ${SESSION.area} ha · Kharif 2024</span>`;
   window.scrollTo(0,0);
   if (id==='overview') drawOvChart();
   if (id==='crops') drawCropHealthChart();
@@ -885,22 +1061,26 @@ function drawLineChart(id, labels, datasets, opts={}) {
   const pad = {t:16,r:16,b:32,l:40};
   const cw = W-pad.l-pad.r, ch = H-pad.t-pad.b;
   ctx.clearRect(0,0,W,H);
+  const dark = document.body.classList.contains('dark-mode');
+  const chartBg = dark ? '#16221a' : '#f8fdf9';
+  const gridColor = dark ? '#2f4438' : '#d4e8d7';
+  const axisColor = dark ? '#a7b9ab' : '#9aab9d';
   // bg
-  ctx.fillStyle='#f8fdf9'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=chartBg; ctx.fillRect(0,0,W,H);
   // grid
   const allVals = datasets.flatMap(d=>d.data);
   const minV = opts.min ?? Math.min(...allVals)*0.92;
   const maxV = opts.max ?? Math.max(...allVals)*1.06;
   const range = maxV-minV || 1;
-  ctx.strokeStyle='#d4e8d7'; ctx.lineWidth=1;
+  ctx.strokeStyle=gridColor; ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+ch*(1-i/4);
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cw,y); ctx.stroke();
-    ctx.fillStyle='#9aab9d'; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='right';
+    ctx.fillStyle=axisColor; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='right';
     ctx.fillText(Math.round(minV+range*(i/4))+(opts.suffix||''), pad.l-4, y+3);
   }
   // x labels
-  ctx.fillStyle='#9aab9d'; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='center';
+  ctx.fillStyle=axisColor; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='center';
   labels.forEach((l,i)=>{
     const x=pad.l+cw*(i/(labels.length-1));
     ctx.fillText(l, x, H-pad.b+14);
@@ -948,13 +1128,17 @@ function drawBarChart(id, labels, data, colors, opts={}) {
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   const pad={t:12,r:16,b:30,l:44};
   const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
-  ctx.fillStyle='#f8fdf9'; ctx.fillRect(0,0,W,H);
+  const dark = document.body.classList.contains('dark-mode');
+  const chartBg = dark ? '#16221a' : '#f8fdf9';
+  const gridColor = dark ? '#2f4438' : '#d4e8d7';
+  const axisColor = dark ? '#a7b9ab' : '#9aab9d';
+  ctx.fillStyle=chartBg; ctx.fillRect(0,0,W,H);
   const maxV=Math.max(...data)*1.1||1;
-  ctx.strokeStyle='#d4e8d7'; ctx.lineWidth=1;
+  ctx.strokeStyle=gridColor; ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+ch*(1-i/4);
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cw,y); ctx.stroke();
-    ctx.fillStyle='#9aab9d'; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='right';
+    ctx.fillStyle=axisColor; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='right';
     ctx.fillText(Math.round(maxV*i/4)+(opts.suffix||''), pad.l-4, y+3);
   }
   const bw=cw/labels.length*0.65, gap=cw/labels.length;
@@ -973,7 +1157,7 @@ function drawBarChart(id, labels, data, colors, opts={}) {
     ctx.lineTo(x+bw,pad.t+ch); ctx.lineTo(x,pad.t+ch);
     ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
     ctx.fill();
-    ctx.fillStyle='#6b7f6e'; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle=axisColor; ctx.font='10px Outfit,sans-serif'; ctx.textAlign='center';
     ctx.fillText(l, x+bw/2, H-pad.b+14);
   });
 }
@@ -1144,7 +1328,7 @@ function getAIResponse(q) {
   if (lower.includes('banana') || lower.includes('sigatoka') || lower.includes('blight')) return AI_ANSWERS.banana;
   if (lower.includes('irrigat') || lower.includes('water') || lower.includes('f3')) return AI_ANSWERS.irrigat;
   if (lower.includes('turmeric') || lower.includes('market') || lower.includes('sell')) return AI_ANSWERS.turmeric;
-  return 'Based on your current farm data: health score is 87/100, 2 active disease alerts need attention, and Field 3 & 7 require urgent irrigation. Your AI analysis is running on 8,640 sensor readings collected today. Would you like specific advice on any crop or field?';
+  return `Based on your current farm data (${SESSION.farmId}, ${SESSION.area} ha): health score is 87/100, 2 active disease alerts need attention, and Field 3 & 7 require urgent irrigation. Your AI analysis is running on 8,640 sensor readings collected today. Would you like specific advice on any crop or field, ${FIRST}?`;
 }
 function askAI(preset) {
   const input = document.getElementById('ai-input');
@@ -1183,6 +1367,9 @@ window.addEventListener('resize', () => {
   const btn = document.getElementById('menuBtn');
   if (btn) btn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
 });
+const themeBtn = document.getElementById('themeToggle');
+if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+updateThemeToggleLabel();
 window.dispatchEvent(new Event('resize'));
 </script>
 </body>
