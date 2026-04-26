@@ -364,19 +364,19 @@
   </div>
 </section>
 
-<!-- CTA -->
-<section class="section cta-section" id="contact">
+<!-- REGISTER -->
+<section class="section register-section" id="contact">
   <div class="container">
-    <div class="cta-box reveal">
+    <div class="register-box reveal">
       <h2>Start Monitoring Your Farm Today</h2>
       <p>Join 3,200+ farmers already using Agri Cloud. Free 30-day trial. No credit card required.</p>
-      <form class="cta-form" onsubmit="ctaSubmit(event)">
-        <input type="text" placeholder="Your Name" required>
-        <input type="tel" placeholder="Phone Number" required>
-        <input type="text" placeholder="District / Village">
+      <form class="register-form" onsubmit="registerSubmit(event)">
+        <input type="text" id="register-name" placeholder="Your Name" required>
+        <input type="tel" id="register-phone" placeholder="Phone Number" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" required>
+        <input type="text" id="register-location" placeholder="District / Village">
         <button type="submit" class="btn btn-primary btn-lg">Get Free Trial →</button>
       </form>
-      <p class="cta-note">By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+      <p class="register-note">By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
     </div>
   </div>
 </section>
@@ -395,7 +395,7 @@
       <div>
         <div class="footer-head">Platform</div>
         <ul class="footer-links">
-          <li><a href="#">IoT Sensors</a></li>
+          <li><a href="# ">IoT Sensors</a></li>
           <li><a href="#">Crop Analytics</a></li>
           <li><a href="#">Smart Irrigation</a></li>
           <li><a href="#">Market Prices</a></li>
@@ -426,6 +426,14 @@
     </div>
   </div>
 </footer>
+
+<div class="register-popup-backdrop" id="register-popup-backdrop"></div>
+<div class="register-popup" id="register-popup" role="dialog" aria-modal="true" aria-labelledby="register-popup-title" aria-describedby="register-popup-message">
+  <div class="register-popup-icon" id="register-popup-icon">🌾</div>
+  <h3 class="register-popup-title" id="register-popup-title">Registration Submitted</h3>
+  <p class="register-popup-message" id="register-popup-message">Thank you! Our team will contact you within 24 hours to set up your free trial. 🌾</p>
+  <button type="button" class="btn btn-primary" id="register-popup-close">Close</button>
+</div>
 
 <script src="js/main.js"></script>
 <script src="js/honeypot.js"></script>
@@ -530,14 +538,91 @@ function toggleFaq(btn) {
   if (!isOpen) item.classList.add('open');
 }
 
-/* ── CTA FORM ────────────────────────────────────────── */
-function ctaSubmit(e) {
-  e.preventDefault();
-  const btn = e.target.querySelector('button');
-  btn.textContent = '✓ Request Sent!';
-  btn.style.background = '#22c55e';
-  setTimeout(() => { btn.textContent = 'Get Free Trial →'; btn.style.background = ''; e.target.reset(); }, 3000);
+/* ── REGISTER FORM ───────────────────────────────────── */
+function showRegisterPopup(state, message) {
+  const popup = document.getElementById('register-popup');
+  const backdrop = document.getElementById('register-popup-backdrop');
+  const title = document.getElementById('register-popup-title');
+  const icon = document.getElementById('register-popup-icon');
+  const msg = document.getElementById('register-popup-message');
+  if (!popup || !backdrop || !title || !icon || !msg) return;
+
+  msg.textContent = message;
+  popup.classList.remove('error', 'success');
+  if (state === 'error') {
+    popup.classList.add('error');
+    title.textContent = 'Invalid Phone Number';
+    icon.textContent = '⚠️';
+  } else {
+    popup.classList.add('success');
+    title.textContent = 'Registration Submitted';
+    icon.textContent = '🌾';
+  }
+
+  popup.classList.add('show');
+  backdrop.classList.add('show');
 }
+
+function hideRegisterPopup() {
+  const popup = document.getElementById('register-popup');
+  const backdrop = document.getElementById('register-popup-backdrop');
+  if (popup) popup.classList.remove('show');
+  if (backdrop) backdrop.classList.remove('show');
+}
+
+function registerSubmit(e) {
+  e.preventDefault();
+  const nameEl = e.target.querySelector('#register-name');
+  const phoneEl = e.target.querySelector('#register-phone');
+  const locationEl = e.target.querySelector('#register-location');
+
+  const name = (nameEl.value || '').trim();
+  const digits = (phoneEl.value || '').replace(/\D/g, '').slice(0, 10);
+  const location = (locationEl.value || '').trim();
+
+  if (!name) {
+    showRegisterPopup('error', 'Please enter your name.');
+    nameEl.focus();
+    return;
+  }
+
+  phoneEl.value = digits;
+
+  if (digits.length !== 10) {
+    showRegisterPopup('error', 'Please enter a valid 10-digit phone number.');
+    phoneEl.focus();
+    return;
+  }
+
+  const registration = {
+    id: Date.now(),
+    name,
+    phone: digits,
+    location: location || '—',
+    createdAt: new Date().toISOString(),
+  };
+
+  const allRegs = JSON.parse(localStorage.getItem('agri_registrations') || '[]');
+  allRegs.unshift(registration);
+  if (allRegs.length > 100) allRegs.length = 100;
+  localStorage.setItem('agri_registrations', JSON.stringify(allRegs));
+
+  showRegisterPopup('success', 'Thank you! Our team will contact you within 24 hours to set up your free trial. 🌾');
+  e.target.reset();
+}
+
+const registerPhone = document.getElementById('register-phone');
+if (registerPhone) {
+  registerPhone.addEventListener('input', () => {
+    registerPhone.value = registerPhone.value.replace(/\D/g, '').slice(0, 10);
+  });
+}
+
+const registerPopupClose = document.getElementById('register-popup-close');
+if (registerPopupClose) registerPopupClose.addEventListener('click', hideRegisterPopup);
+
+const registerPopupBackdrop = document.getElementById('register-popup-backdrop');
+if (registerPopupBackdrop) registerPopupBackdrop.addEventListener('click', hideRegisterPopup);
 </script>
 </body>
 </html>

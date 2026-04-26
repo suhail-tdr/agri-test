@@ -1222,7 +1222,7 @@ function getLiveFarmSnapshot() {
 }
 
 function formatTime(d) {
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).replace(/\b(am|pm)\b/i, m => m.toUpperCase());
 }
 
 function updateAILiveStatus(snapshot) {

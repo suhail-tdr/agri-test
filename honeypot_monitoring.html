@@ -215,7 +215,7 @@ let lastCount=0, riskScore=0, totalEvents=0, totalClicks=0, totalCopies=0, total
 let sectionsHit=new Set(), firstTs=null, feedInited=false, timerRunning=false;
 
 // Clock
-setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); },1000);
+setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour12:true}).replace(/\b(am|pm)\b/i, m => m.toUpperCase()); },1000);
 
 // Risk engine
 const RISK = { visit:0, scroll:1, section:8, click:3, select:4, copy:20, time:10, exit:0 };
@@ -429,7 +429,7 @@ function sendAlert(type,activity,entry){
                  click:'🖱️ Sidebar Clicked', exit:'🚪 Visitor Left Page', select:'✂️ Text Selected', scroll:'📜 Page Scrolled', time:'⏱️ Extended Visit' };
   const params={ to_email:emailCfg.to, alert_type:labels[type]||type.toUpperCase(), activity:activity||'—',
     browser:entry.browser||'—', os:entry.os||'—', screen:entry.screen||'—', timezone:entry.tz||'—',
-    language:entry.lang||'—', device:entry.device||'—', timestamp:entry.ts||new Date().toLocaleString('en-IN'),
+    language:entry.lang||'—', device:entry.device||'—', timestamp:entry.ts||new Date().toLocaleString('en-IN').replace(/\b(am|pm)\b/i, m => m.toUpperCase()),
     risk_score:riskScore+'/100', page_url:entry.page||'fake-page.html',
     sections_viewed:[...sectionsHit].join(', ')||'None yet', total_events:totalEvents };
   emailQueue=emailQueue.then(()=>
@@ -455,7 +455,7 @@ function testEmail(){
     screen:screen.width+'×'+screen.height,
     timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
     language:navigator.language, device:'Desktop',
-    timestamp:new Date().toLocaleString('en-IN'),
+    timestamp:new Date().toLocaleString('en-IN').replace(/\b(am|pm)\b/i, m => m.toUpperCase()),
     risk_score:'0/100', page_url:'fake-page.html',
     sections_viewed:'N/A (test)', total_events:0,
   }).then(()=>showSpStatus('ok','✅ Test email sent successfully!'))

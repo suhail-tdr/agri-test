@@ -223,3 +223,70 @@ html { scroll-behavior: smooth; }
 #back-top.show { opacity:1; transform:translateY(0); }
 #back-top:hover { background:var(--green-light); transform:translateY(-3px); 
 }
+
+/* ── REGISTER POPUP ─────────────────────────────────── */
+.register-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 16, 9, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 150;
+}
+
+.register-popup {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.94);
+  width: min(92vw, 440px);
+  background: #ffffff;
+  border: 1px solid #d4e8d7;
+  border-radius: 18px;
+  box-shadow: 0 30px 70px rgba(15, 36, 20, 0.28);
+  padding: 1.6rem;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  z-index: 160;
+}
+
+.register-popup-icon {
+  font-size: 2.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.register-popup-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: #1a2e1d;
+  margin: 0 0 0.45rem;
+}
+
+.register-popup-message {
+  color: #4e6452;
+  line-height: 1.7;
+  margin: 0 0 1.1rem;
+}
+
+.register-popup.show,
+.register-popup-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.register-popup.show {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.register-popup.success {
+  border-top: 4px solid #2d7a3a;
+}
+
+.register-popup.error {
+  border-top: 4px solid #dc2626;
+}

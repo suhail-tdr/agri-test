@@ -46,8 +46,8 @@
     </div>
 
     <div class="field-group">
-      <div class="field-label">Farmer ID</div>
-      <input class="field-input" type="text" id="username" placeholder="e.g. FARM_ADMIN_01" autocomplete="off">
+      <div class="field-label">Farm ID / User ID</div>
+      <input class="field-input" type="text" id="username" placeholder="ENTER YOUR ID" autocomplete="off">
     </div>
 
     <div class="field-group">
@@ -129,7 +129,7 @@ const VALID_USERS = {
   "admin@dashboard": {
     pass: "dashboard@admin", dest: "honeypot_dashboard.html",
     name: "Dashboard", initials: "DA",
-    farmId: "AC-DASH-001",   district: "Internal",
+    farmId: "AC-DASH-01",   district: "Internal",
     area: "—",             plan: "Admin",
     crops: "—",
   },
@@ -143,7 +143,7 @@ const VALID_USERS = {
   "admin@monitor": {
     pass: "Monitor@admin", dest: "honeypot_monitoring.html",
     name: "Monitor Admin", initials: "MA",
-    farmId: "AC-MON-001",  district: "Internal",
+    farmId: "AC-MON-01",  district: "Internal",
     area: "—",             plan: "Admin",
     crops: "—",
   },
@@ -240,7 +240,7 @@ function redirectToFake(reason, user) {
 // ── CLOCK ─────────────────────────────────────────────
 function updateClock() {
   document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-GB', { hour12: false });
+    new Date().toLocaleTimeString('en-GB', { hour12: true }).replace(/\b(am|pm)\b/i, m => m.toUpperCase());
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -279,6 +279,24 @@ function saveLog(entry) {
 
 function addTicker() {} // stub (ticker removed)
 
+function findUserByLoginId(loginId) {
+  if (!loginId) return null;
+
+  const directRecord = VALID_USERS[loginId];
+  if (directRecord) {
+    return { username: loginId, record: directRecord };
+  }
+
+  const lookup = loginId.toLowerCase();
+  for (const [username, record] of Object.entries(VALID_USERS)) {
+    if (String(record.farmId || '').toLowerCase() === lookup) {
+      return { username, record };
+    }
+  }
+
+  return null;
+}
+
 // ── LOGIN FUNCTION ────────────────────────────────────
 function attemptLogin() {
   const rawUser = document.getElementById('username').value.trim();
@@ -310,14 +328,16 @@ function attemptLogin() {
       return;
     }
 
-    // ── 2. VALID USER CHECK ──────────────────────────
-    const record = VALID_USERS[rawUser];
+    // ── 2. VALID USER CHECK (USERNAME OR FARM ID) ────
+    const match = findUserByLoginId(rawUser);
+    const record = match ? match.record : null;
+    const resolvedUsername = match ? match.username : rawUser;
     if (record && record.pass === rawPass) {
       saveLog({ event:'LOGIN_SUCCESS', ts: new Date().toISOString(), user });
 
       // ── SAVE SESSION ─────────────────────────────────
       const session = {
-        username:  rawUser,
+        username:  resolvedUsername,
         name:      record.name,
         initials:  record.initials,
         farmId:    record.farmId,
@@ -331,7 +351,7 @@ function attemptLogin() {
 
       const overlay = document.getElementById('success-overlay');
       overlay.classList.add('show');
-      document.getElementById('s-time').textContent = new Date().toLocaleString('en-GB');
+      document.getElementById('s-time').textContent = new Date().toLocaleString('en-GB').replace(/\b(am|pm)\b/i, m => m.toUpperCase());
       document.getElementById('s-user').textContent = record.name.toUpperCase();
 
       // Update success overlay farm id line dynamically
@@ -383,7 +403,7 @@ function attemptLogin() {
     if (failedAttempts >= 3) {
       const overlay = document.getElementById('denied-overlay');
       overlay.classList.add('show');
-      document.getElementById('d-time').textContent = new Date().toLocaleString('en-GB');
+      document.getElementById('d-time').textContent = new Date().toLocaleString('en-GB').replace(/\b(am|pm)\b/i, m => m.toUpperCase());
       document.getElementById('d-user').textContent = user.toUpperCase();
       document.getElementById('d-browser').textContent = navigator.userAgent.split(' ').slice(-2).join(' ');
 

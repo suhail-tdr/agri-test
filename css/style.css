@@ -550,23 +550,23 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr; gap: 3rem; } }
 
 /* ── CTA ───────────────────────────────────────────── */
-.cta-section { background: var(--bg-dark); }
-.cta-box { max-width: 600px; margin: 0 auto; text-align: center; }
-.cta-box h2 { font-family: 'DM Serif Display', serif; font-size: 2.2rem; color: white; margin-bottom: 1rem; }
-.cta-box p { color: rgba(255,255,255,0.6); margin-bottom: 2rem; }
+.cta-section, .register-section { background: var(--bg-dark); }
+.cta-box, .register-box { max-width: 600px; margin: 0 auto; text-align: center; }
+.cta-box h2, .register-box h2 { font-family: 'DM Serif Display', serif; font-size: 2.2rem; color: white; margin-bottom: 1rem; }
+.cta-box p, .register-box p { color: rgba(255,255,255,0.6); margin-bottom: 2rem; }
 
-.cta-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-.cta-form input {
+.cta-form, .register-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.cta-form input, .register-form input {
   padding: 0.85rem 1rem; border: 1px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.08); color: white; border-radius: 8px;
   font-family: 'Outfit', sans-serif; font-size: 0.9rem;
   outline: none; transition: border-color 0.2s;
 }
-.cta-form input::placeholder { color: rgba(255,255,255,0.35); }
-.cta-form input:focus { border-color: rgba(45,122,58,0.6); }
-.cta-form button { grid-column: 1 / -1; }
-.cta-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 1rem; }
-.cta-note a { color: rgba(255,255,255,0.5); text-decoration: underline; }
+.cta-form input::placeholder, .register-form input::placeholder { color: rgba(255,255,255,0.35); }
+.cta-form input:focus, .register-form input:focus { border-color: rgba(45,122,58,0.6); }
+.cta-form button, .register-form button { grid-column: 1 / -1; }
+.cta-note, .register-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 1rem; }
+.cta-note a, .register-note a { color: rgba(255,255,255,0.5); text-decoration: underline; }
 
 /* ── FOOTER ────────────────────────────────────────── */
 .footer { background: #080f09; padding: 4rem 0 2rem; }

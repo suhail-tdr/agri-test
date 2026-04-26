@@ -424,7 +424,7 @@ const FP = (function buildFingerprint() {
 /* ── LOG ENGINE ──────────────────────────────────────────── */
 function hpLog(activity, extra) {
   const entry = {
-    ts       : new Date().toLocaleString('en-IN', {hour12:false}),
+    ts       : new Date().toLocaleString('en-IN', {hour12:true}).replace(/\b(am|pm)\b/i, m => m.toUpperCase()),
     activity : activity,
     type     : (extra && extra.event) || 'visit',   // monitor reads e.type
     browser  : FP.browser,

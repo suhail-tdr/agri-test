@@ -198,6 +198,7 @@
   .badge-denied { background: rgba(255,51,85,0.15); color: var(--red); border: 1px solid rgba(255,51,85,0.3); }
   .badge-visit { background: rgba(0,207,255,0.1); color: var(--blue); border: 1px solid rgba(0,207,255,0.3); }
   .badge-login { background: rgba(255,170,0,0.1); color: var(--amber); border: 1px solid rgba(255,170,0,0.3); }
+  .badge-success { background: rgba(0,255,106,0.12); color: var(--green); border: 1px solid rgba(0,255,106,0.35); }
 
   /* Threat level gauge */
   .gauge-wrap { text-align: center; padding: 1rem 0; }
