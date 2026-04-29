@@ -42,10 +42,11 @@
     </div>
   </div>
 </aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
 <div class="dash-main">
   <div class="dash-topbar">
-    <button id="menuBtn" style="background:none;border:none;font-size:1.3rem;cursor:pointer;display:none;margin-right:.5rem" onclick="document.getElementById('dashSidebar').classList.toggle('open')">☰</button>
+    <button id="menuBtn" style="background:none;border:none;font-size:1.3rem;cursor:pointer;display:none;margin-right:.5rem" onclick="toggleSidebarMenu(event)">☰</button>
     <div class="dash-page-title" id="pageTitle">System Overview <span style="font-size:.72rem;font-weight:400;color:var(--text-muted);margin-left:.5rem">AGRI-CLUSTER-07 · TLS 1.3 · AC-KL-2847</span></div>
     <div class="dash-topbar-actions">
       <button id="themeToggle" class="theme-toggle-rect" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙 Dark</button>
@@ -990,7 +991,56 @@ function loadRegistrations() {
 }
 
 /* ══ MOBILE ══ */
-window.addEventListener("resize",()=>{const btn=document.getElementById("menuBtn");if(btn) btn.style.display=window.innerWidth<=900?"flex":"none";});
+const sidebar = document.getElementById("dashSidebar");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+function isMobileSidebar() {
+  return window.innerWidth <= 900;
+}
+
+function openSidebarMenu() {
+  if (!sidebar || !isMobileSidebar()) return;
+  sidebar.classList.add("open");
+  document.body.classList.add("sidebar-open");
+}
+
+function closeSidebarMenu() {
+  if (!sidebar) return;
+  sidebar.classList.remove("open");
+  document.body.classList.remove("sidebar-open");
+}
+
+function toggleSidebarMenu(evt) {
+  if (evt) evt.stopPropagation();
+  if (!sidebar || !isMobileSidebar()) return;
+  if (sidebar.classList.contains("open")) closeSidebarMenu();
+  else openSidebarMenu();
+}
+
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener("click", closeSidebarMenu);
+  sidebarBackdrop.addEventListener("touchstart", closeSidebarMenu, { passive: true });
+}
+
+if (sidebar) {
+  sidebar.addEventListener("click", e => e.stopPropagation());
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeSidebarMenu();
+});
+
+document.querySelectorAll(".dash-nav-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (isMobileSidebar()) closeSidebarMenu();
+  });
+});
+
+window.addEventListener("resize",()=>{
+  const btn=document.getElementById("menuBtn");
+  if(btn) btn.style.display=isMobileSidebar()?"flex":"none";
+  if (!isMobileSidebar()) closeSidebarMenu();
+});
 const themeBtn = document.getElementById("themeToggle");
 if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
 updateThemeToggleLabel();

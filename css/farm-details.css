@@ -70,6 +70,16 @@ canvas { display:block;width:100% !important; }
 .zone-status { font-size:0.72rem;color:var(--text-muted);margin-top:2px; }
 .zone-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.25rem; }
 
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 90;
+}
+
 /* ── MARKET TICKER LIVE ──────────────────────────────── */
 .live-dot { width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;animation:blink 1.5s infinite;box-shadow:0 0 6px rgba(34,197,94,0.5); }
 @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
@@ -168,6 +178,8 @@ body.dark-mode .theme-toggle:hover {
 
 /* ── RESPONSIVE ──────────────────────────────────────── */
 @media(max-width:900px){
+  body.sidebar-open { overflow: hidden; }
+  body.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   #menuBtn { display:flex !important; }
   .dash-grid2,.dash-grid3 { grid-template-columns:1fr !important; }
   .zone-grid { grid-template-columns:1fr 1fr; }
